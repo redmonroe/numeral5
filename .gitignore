@@ -1,0 +1,83 @@
+.vscode/settings.json
+
+ta_lib/TA_Lib-0.4.19-cp38-cp38-win32.whl
+*.json
+alembic/
+*.db
+download_here_h/
+num4_env_win/
+*.pickle
+*.log
+*.code-workspace
+
+*.exe
+*.csv
+*.cfg
+*.gz
+*.bat
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+
+# project specific gitignores
+alembic.ini
+db_backups/dump1130202019.sql
+.vscode/.ropeproject/config.py
+.vscode/.ropeproject/objectdb
+num4_env_win/Scripts/activate
+num4_env_win/Scripts/Activate.ps1
+num4_env_win/Scripts/autopep8-script.py
+num4_env_win/Scripts/autopep8.exe.manifest
+num4_env_win/Scripts/pywin32_postinstall.py
+num4_env_win/Scripts/pywin32_testall.py
+num4_env_win/Scripts/runxlrd.py
+num4_env_win/share/jupyter/kernels/python3/logo-64x64.png
+num4_env_win/share/jupyter/kernels/python3/logo-32x32.png
+config.py
+app/schema.sql
+.flaskenv
+app/templates/dep_templates/account_form.html
+app/templates/dep_templates/accounts.html
+app/templates/dep_templates/compute_stop.html
+app/templates/dep_templates/delete_accounts.html
+app/templates/dep_templates/delete_one.html
+app/templates/dep_templates/index.html
+app/templates/dep_templates/view_posts.html
+app/templates/dep_templates/view_transactions.html
+download_here/category_list_for_load_category_function.xlsx
+Pagination Mixin sketches.ipynb
+jupyter tests.ipynb
+n5/Scripts/Activate.ps1
+n5/Scripts/activate
