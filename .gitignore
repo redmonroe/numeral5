@@ -3,6 +3,7 @@
 ta_lib/TA_Lib-0.4.19-cp38-cp38-win32.whl
 *.json
 alembic/
+migrations/
 *.db
 download_here_h/
 num4_env_win/
@@ -81,3 +82,5 @@ Pagination Mixin sketches.ipynb
 jupyter tests.ipynb
 n5/Scripts/Activate.ps1
 n5/Scripts/activate
+messages.pot
+n5_jupyter_sketches.ipynb
