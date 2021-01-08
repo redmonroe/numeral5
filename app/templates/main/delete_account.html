@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>delete account</title>
+</head>
+<body>
+    <h1>delete account</h1>
+      {% for item in items %}
+        <p>account : <a> {{ item.id }} {{ item.acct_name }}</a> <div> type: {{ item.type }}</div>  select id to delete account:  <a href="{{ url_for('main.deleted', username=current_user.username, id=item.id)  }}"> {{ item.id }} </a>  </p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('main.create_account', username=current_user.username) }}">create account</a>
+      <a href="{{ url_for('main.delete_account', username=current_user.username) }}">delete account</a>
+    </form>
+</body>
+</html>
+{% endblock %}

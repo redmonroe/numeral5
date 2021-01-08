@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>chart of accounts</title>
+</head>
+<body>
+    <h1>accounts</h1>
+      {% for item in items %}
+       
+      a> <div> type: {{ item.type }}</div>  account identifier:  {{ item.id  }} 
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('main.create_account', username=current_user.username) }}">create account</a>
+      <a href="{{ url_for('main.delete_account', username=current_user.username) }}">delete account</a>
+    </form>
+</body>
+</html>
+{% endblock %}

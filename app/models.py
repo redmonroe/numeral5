@@ -51,17 +51,6 @@ class User(UserMixin, db.Model):
     #     if self.is_following(user):
     #         self.followed.remove(user)
 
-    # def is_following(self, user):
-    #     return self.followed.filter(
-    #         followers.c.followed_id == user.id).count() > 0
-
-    # def followed_posts(self):
-    #     followed = Post.query.join(
-    #         followers, (followers.c.followed_id == Post.user_id)).filter(
-    #             followers.c.follower_id == self.id)
-    #     own = Post.query.filter_by(user_id=self.id)
-    #     return followed.union(own).order_by(Post.timestamp.desc())
-
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode(
             {'reset_password': self.id, 'exp': time() + expires_in},
@@ -76,6 +65,15 @@ class User(UserMixin, db.Model):
         except:
             return
         return User.query.get(id)
+
+class Accounts(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    acct_name = db.Column(db.String)
+    startbal = db.Column(db.Numeric)
+    type = db.Column(db.String)
+    status = db.Column(db.String) #either open or closed
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
 
 
 @login.user_loader

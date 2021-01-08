@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+<h1>numeral5</h1>
+
+</head>
+<body>
+    <p>Hi, {{ current_user.username }}!</p>
+    <p>actions</p>
+    {{  string  }}
+
+    </form>
+    <!-- Link back to Account View: -->
+    <p><a href="/create_account">View Accounts & Access Ledgers</a></p>
+    <a href="{{ url_for('main.create_account', username=current_user.username) }}">{{ _('Create an Account') }}</a>
+    <p><a href="/accountview">View Accounts & Access Ledgers</a></p>
+    <p><a href="/accountview">Balance Sheet #TODO</a></p>
+    <p><a href="/addaccount">Add an Account</a></p>
+    <p><a href="/delete_account">Delete an Account</a></p>
+    <p><a href="/vca">Trend Stop</a></p>
+
+
+</body>
+</html>
+{% endblock %}
