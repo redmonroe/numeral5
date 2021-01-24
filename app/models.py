@@ -74,12 +74,72 @@ class Accounts(db.Model):
     status = db.Column(db.String) #either open or closed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+class Categories(db.Model):
+    id = db.Column(db.Integer, primary_key=True )
+    name = db.Column(db.String)
+    inorex = db.Column(db.String)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+    def __repr__(self):
+        spacer = '**'
+        return f'{self.name:-^40} {spacer:>2} {self.inorex:^20}'
+
+
+class Transactions(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    date = db.Column(db.Date)
+    amount = db.Column(db.Numeric)
+    payee_name = db.Column(db.String) # would become own column
+    type = db.Column(db.String)
+    cat_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    cat_id2 = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    cat_id3 = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+    amount2 = db.Column(db.Numeric)
+    acct_id2 = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    # may need a repr
+
+    def get_current_balance(id): # must include transfers (as opposed to transaction journals which don't)
+        from decimal import Decimal
+        print(id, type(id))
+        results = []
+        r = Transactions.query.filter(Transactions.acct_id2 ==
+                                        id, Transactions.type != 'notposted').all()
+        r2 = Transactions.query.filter(Transactions.acct_id ==
+                                        id, Transactions.type != 'notposted').all()
+        for item in r:
+            results.append(item)
+        for item in r2:
+            results.append(item)
+
+        bal_list = []
+        # gets starting balance from account id
+        starting_balance = Accounts.query.filter(Accounts.id == id).first()
+        print('ok', starting_balance.startbal)
+
+        for item in results:
+            if item.type == 'transfer' and item.acct_id2 == int(id):
+                bal_list.append(item.amount2)
+            elif (item.type == 'transfer') and (item.acct_id == int(id)):
+                print('transfer amount:', item.amount)
+                bal_list.append(item.amount)
+            elif item.type == 'transactions':
+                bal_list.append(item.amount)
+
+        try:
+            print('bal_list sum', sum(bal_list))
+            curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+            print('curbal', curbal)
+        except TypeError as e: 
+            curbal = Decimal(starting_balance.startbal) + 0
+
+        return curbal, starting_balance
 
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
-
 
 # class Post(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)

@@ -1,17 +1,45 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, DecimalField
-from wtforms.validators import ValidationError, DataRequired, Length
+from wtforms import StringField, SubmitField, TextAreaField, DecimalField, SelectField, DateField
+from wtforms.validators import ValidationError, DataRequired, Length, InputRequired
 from flask_babel import _, lazy_gettext as _l
 from app.models import User
 
 
 class AccountCreationForm(FlaskForm):
     acct_name = StringField('account name', validators=[DataRequired()])
-    startbal = DecimalField('starting balance', validators=[DataRequired()])
+    startbal = DecimalField('starting balance', validators=[InputRequired()])
     type = StringField('asset or liability?', validators=[DataRequired()])
     status = StringField('open or closed?', validators=[DataRequired()])
     submit = SubmitField('create account')
+
+
+class EditAccountForm(AccountCreationForm):
+    submit = SubmitField('submit account changes')
+
+
+class CategoryCreationForm(FlaskForm):
+    name = StringField('category name', validators=[DataRequired()])
+    inorex = StringField('income or expense account?', validators=[DataRequired()])
+    submit = SubmitField('create category')
+
+class EditCategoryForm(CategoryCreationForm):
+    submit = SubmitField('submit category changes')
+
+class TransactionCreationForm(FlaskForm):
+    date = DateField('date', validators=[DataRequired()])
+    type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer'), ('notposted', 'notposted')])
+
+    amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
+    payee_name = StringField('payee name')
+    acct_id = SelectField('distribution account?', validators=[DataRequired()])
+    acct_id2 = SelectField('transfer account?')
+    cat_id = SelectField('category?')
+    submit = SubmitField('add transaction to register')
+
+
+class EditTransactionForm(TransactionCreationForm):
+    submit = SubmitField('submit category changes')
 
 '''
 class EditProfileForm(FlaskForm):
@@ -38,4 +66,4 @@ class EmptyForm(FlaskForm):
 class PostForm(FlaskForm):
     post = TextAreaField(_l('Say something'), validators=[DataRequired()])
     submit = SubmitField(_l('Submit'))
-'''
+    '''

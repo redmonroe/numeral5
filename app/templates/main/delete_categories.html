@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>delete categories</title>
+</head>
+<body>
+    <h1>delete hi categories</h1>
+      {% for item in items %}
+        <p>category : <a href={{ url_for('account_register', username=current_user.username, id=item.id)}}> {{ item.id }}</a> <div> select id to delete category:  <a href="{{ url_for('deletedcat', username=current_user.username, id=item.id)  }}"> {{ item.id }} {{ item.name }} {{ item.inorex }} </a>  </p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('main.create_category', username=current_user.username) }}">create category</a>
+      <a href="{{ url_for('main.delete_category', username=current_user.username) }}">delete category</a>
+    </form>
+</body>
+</html>
+{% endblock %}

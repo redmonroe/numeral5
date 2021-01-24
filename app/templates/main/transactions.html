@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+<html>
+<head>
+    <title>transactions</title>
+</head>
+<body>
+    <h1>transactionsx</h1>
+    {% for item in items %}
+    <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a class="page-link" href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit transaction</a>
+        <hr>
+    {% endfor %}
+    <ul class="pagination">
+      {% if items.has_prev %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('main.transactions', username=current_user.username, page=items.prev_num) }}">Previous</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+    {% endif %}
+
+    {% if items.has_next %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('main.transactions', username=current_user.username, page=items.next_num) }}">Next</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+    {% endif %}
+    <p>current balance:</p>  {{ curbal }}
+    </form>
+
+  
+</body>
+</html>
+{% endblock %}

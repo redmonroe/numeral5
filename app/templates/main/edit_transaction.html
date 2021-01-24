@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>edit transaction</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.type.label }}<br>
+            {{ form.type }}<br>
+            {% for error in form.type.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.date.label }}<br>
+            {{ form.date(size=32) }}<br>
+            {% for error in form.date.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.amount.label }}<br>
+            {{ form.amount(size=64) }}<br>
+            {% for error in form.amount.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.payee_name.label }}<br>
+            {{ form.payee_name(size=32) }}<br>
+            {% for error in form.payee_name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.acct_id.label }}<br>
+            {{ form.acct_id }}<br>
+            {% for error in form.acct_id.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>            
+            {{ form.acct_id2.label }}<br>
+            {{ form.acct_id2 }}<br>
+            {% for error in form.acct_id2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}    
+        <p>
+            {{ form.cat_id.label }}<br>
+            {{ form.cat_id }}<br>
+            {% for error in form.cat_id.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+        <a href="{{ url_for('main.transactions', username=current_user.username) }}">view transactions</a>
+    </form>
+{% endblock %}

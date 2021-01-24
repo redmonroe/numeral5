@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>delete transaction</title>
+</head>
+<body>
+    <h1>delete transaction</h1>
+      {% for item in items %}
+        <div> name : {{ item.acct_name }} <div> type: {{ item.type }}</div>  select id to delete transaction:  <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id)  }}"> {{ item.id }} </a>  </p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('main.create_transaction', username=current_user.username) }}">create account</a>
+      <a href="{{ url_for('main.delete_transaction', username=current_user.username) }}">delete account</a>
+    </form>
+</body>
+</html>
+{% endblock %}

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block content %}
+{% block app_content %}
 <html>
 <head>
     <style>
@@ -15,7 +16,7 @@
 <body>
     <h1>delete account</h1>
       {% for item in items %}
-        <p>account : <a> {{ item.id }} {{ item.acct_name }}</a> <div> type: {{ item.type }}</div>  select id to delete account:  <a href="{{ url_for('main.deleted', username=current_user.username, id=item.id)  }}"> {{ item.id }} </a>  </p>
+        <div> name : {{ item.acct_name }} <div> type: {{ item.type }}</div>  select id to delete account:  <a href="{{ url_for('main.deleted', username=current_user.username, id=item.id)  }}"> {{ item.id }} </a>  </p>
         <hr>
       {% endfor %}
       <a href="{{ url_for('main.create_account', username=current_user.username) }}">create account</a>

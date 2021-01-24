@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<html>
+<head>
+    <title>categories</title>
+</head>
+<body>
+    <h1>categories</h1>
+      {% for item in items %}
+        <p>category : {{ item }}  <a href="{{ url_for('main.edit_category', username=current_user.username, id=item.id) }}">edit category</a></p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('main.create_category', username=current_user.username) }}">create categories</a>
+      <a href="{{ url_for('main.delete_category', username=current_user.username) }}">delete categories</a>
+    </form>
+</body>
+</html>
+{% endblock %}
