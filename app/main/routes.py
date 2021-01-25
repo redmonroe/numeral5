@@ -337,15 +337,52 @@ def edit_transaction(username, id):
 @bp.route('/register/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def register(username, id):
-    from sqlalchemy import or_
+    from sqlalchemy import or_, and_
     
     user = User.query.filter_by(username=username).first()
 
     # results = []
     page = request.args.get('page', 1, type=int)
 
-    results = Transactions.query.filter(or_(Transactions.user_id == user.id, Transactions.acct_id == id)).order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
 
+    # we need if type transaction use acct_id1 if type transf
+    # results = Transactions.query.filter(or_(Transactions.user_id == user.id, Transactions.acct_id == id)).order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+
+    '''
+
+           if item.type == 'transfer' and item.acct_id2 == int(id):
+                bal_list.append(item.amount2)
+            elif (item.type == 'transfer') and (item.acct_id == int(id)):
+                print('transfer amount:', item.amount)
+                bal_list.append(item.amount)
+            elif item.type == 'transactions':
+                bal_list.append(item.amount)
+    '''
+
+    transactions_and_transfers_native = Transactions.acct_id == id
+
+    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == id)
+
+    filter_args = [transactions_and_transfers_native, transfers_foreign]
+
+    or_filter = or_(*filter_args)
+
+
+    results = Transactions.query.filter(or_filter)
+    # results = Transactions.query.filter(and_(Transactions.type == 'transfer', Transactions.acct_id2 == int(id)))
+    
+    # results = Transactions.query.filter(and_(Transactions.type == 'transfer', Transactions.acct_id == int(id)))
+        # filter(and_(Transactions.type == 'transfer', Transactions.acct_id2 == int(id)))
+        # filter(Transactions.user_id == user.id).\
+        # paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+
+    
+
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+
+    # for item in results:
+    #     print(item)
+        
     curbal, startbal = Transactions.get_current_balance(id)
 
     next_url = url_for('main.register', username=username, id=id,
