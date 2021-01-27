@@ -30,15 +30,7 @@ def accounts(username):
 
     r = Accounts.query.filter(Accounts.user_id == user.id).all()
 
-    account_list = []
-    for it in r:
-        s = {}
-        curbal, startbal = Transactions.get_current_balance(it.id)
-        s['acct_name'] = it.acct_name
-        s['id'] = it.id
-        s['current_balance'] = curbal
-        s['start_balance'] = it.startbal
-        account_list.append(s)
+    account_list = Accounts.accounts_to_dict(r)
 
     return render_template('main/view_account.html', items=account_list)
 
@@ -281,12 +273,10 @@ def delete_transaction(username):
 
 @bp.route('/deletedtxn/<username>/<id>', methods=['GET', 'POST'])
 @bp.route('/deletedtxn/<username>/<id>/<acct>', methods=['GET', 'POST'])
-
 @login_required
 def deletedtxn(username, id, acct):
 
     user = User.query.filter_by(username=username).first()
-    print(id)
 
     r = Transactions.query.get(id)
 
@@ -295,7 +285,6 @@ def deletedtxn(username, id, acct):
     db.session.close()
 
     flash('congratulations, you deleted a transaction')
-    # post/redirect/get pattern
     return redirect(url_for('main.register', username=username, id=acct))
 
 @bp.route('/edit_transaction/<username>/<id>', methods=['GET', 'POST'])
@@ -375,16 +364,53 @@ def register(username, id):
 
     return render_template('main/register.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url)
 
+@bp.route('/view_reconciliations/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def view_reconciliations(username, id):
+    user = User.query.filter_by(username=username).first()
+    r = Reconciliation.query.filter(Reconciliation.acct_id == id).order_by(Reconciliation.create_date.desc()).all()
+    return render_template('main/view_reconciliations.html', items=r, id=id)
+
+@bp.route('/view_reconciliations_by_account/<username>/', methods=['GET', 'POST'])
+@login_required
+def view_reconciliations_by_account(username):
+
+    #TODO: add last reconciled date
+
+    user = User.query.filter_by(username=username).first()
+    r = Accounts.query.filter(Accounts.user_id == user.id).all()
+
+    account_list = Accounts.accounts_to_dict(r)
+    
+    return render_template('main/view_reconciliations_by_account.html', items=account_list)
+
+@bp.route('/delete_reconciliation/<username>/<id>/<acct_id>', methods=['GET', 'POST'])
+@login_required
+def delete_reconciliation(username, id, acct_id):
+
+    user = User.query.filter_by(username=username).first()
+
+    r = Reconciliation.query.get(id)
+
+    db.session.delete(r)
+    db.session.commit()
+    db.session.close()
+
+    return redirect(url_for('main.view_reconciliations', username=username, id=acct_id))
 
 @bp.route('/start_reconciliation/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def start_reconciliation(username, id):
     user = User.query.filter_by(username=username).first()
 
-    form = ReconciliationForm()
+    # if no previous reconciliation then use startbal
+    # r = Reconciliation.query.filter(Reconciliation.acct_id == id).order_by(Reconciliation.date.desc()).first()
 
+    # if r == None:
+    form = ReconciliationForm()
     if form.validate_on_submit():
         new_reconciliation = Reconciliation()
+        new_reconciliation.create_date = datetime.utcnow()
         new_reconciliation.user_id = user.id
         new_reconciliation.start_date = form.start_date.data
         new_reconciliation.end_date = form.end_date.data
@@ -396,75 +422,83 @@ def start_reconciliation(username, id):
         db.session.commit()
         db.session.close()
         flash('congratulations, you started reconciling . . .')
-    return render_template('main/start_reconciliation.html', username=username, form=form)
+        return redirect(url_for('main.reconcile', username=username))
+    return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=id)
 
-    # return f'reconciliation {username} {id} '
-    """The basic structure of a reconciliation is 
+@bp.route('/reconcile/<username>', methods=['GET', 'POST'])
+@login_required
+def reconcile(username):
+     return render_template('main/reconcile.html', username=username)
 
-    1) pick account
-    2) start date
-    3) end date
-    4) get transactions for that period for that account
 
-    Args:
-        object ([type]): [description]
-    """
     
-    '''
-        choice_row = Accounts.just_show_all_accounts()
-        selection = int(input('Please select account to reconcile: '))
-        account_to_reconcile = 0
-        for k, v in choice_row.items():
-            if selection == k:
-                account_to_reconcile = v
+# return f'reconciliation {username} {id} '
+"""The basic structure of a reconciliation is 
 
-        print('reconciliation account id:', account_to_reconcile)
+1) pick account
+2) start date
+3) end date
+4) get transactions for that period for that account
 
-        date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
-        year, month, day = map(int, date_entry.split('/'))
-        strt_dt = date(year, month, day)
+Args:
+    object ([type]): [description]
+"""
 
-        date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
-        year, month, day = map(int, date_entry.split('/'))
-        end_dt = date(year, month, day)
+'''
+    choice_row = Accounts.just_show_all_accounts()
+    selection = int(input('Please select account to reconcile: '))
+    account_to_reconcile = 0
+    for k, v in choice_row.items():
+        if selection == k:
+            account_to_reconcile = v
 
-        prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
-        statement_end_bal = Decimal(input('Please enter statement ending balance: '))
+    print('reconciliation account id:', account_to_reconcile)
 
-        stuff_check = []
-        for stuff in s.query(Transactions).\
-            filter(or_(Transactions.acct_id == account_to_reconcile, Transactions.acct_id2 == account_to_reconcile)).\
-            filter(Transactions.date >= strt_dt, Transactions.date <= end_dt ).\
-            order_by(Transactions.date).all():
-            stuff_check.append(stuff)
+    date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
+    year, month, day = map(int, date_entry.split('/'))
+    strt_dt = date(year, month, day)
 
-        start_bal = s.query(Accounts).filter(
-                Accounts.id == account_to_reconcile).first()
+    date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
+    year, month, day = map(int, date_entry.split('/'))
+    end_dt = date(year, month, day)
 
-        starting_balance = Decimal(start_bal.startbal)
+    prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
+    statement_end_bal = Decimal(input('Please enter statement ending balance: '))
 
-        start = prior_month_end_bal
-        print('---' * 30)
-        for item in stuff_check:
-            """if matching account is is acct_id then use amount, else use amount2"""
-            if item.acct_id == account_to_reconcile:
-                run_bal = start + item.amount
-                print(item, run_bal)
-                start = run_bal
-            elif item.acct_id2 == account_to_reconcile:
-                run_bal = start + item.amount2
-                print(item, run_bal)
-                start = run_bal
+    stuff_check = []
+    for stuff in s.query(Transactions).\
+        filter(or_(Transactions.acct_id == account_to_reconcile, Transactions.acct_id2 == account_to_reconcile)).\
+        filter(Transactions.date >= strt_dt, Transactions.date <= end_dt ).\
+        order_by(Transactions.date).all():
+        stuff_check.append(stuff)
+
+    start_bal = s.query(Accounts).filter(
+            Accounts.id == account_to_reconcile).first()
+
+    starting_balance = Decimal(start_bal.startbal)
+
+    start = prior_month_end_bal
+    print('---' * 30)
+    for item in stuff_check:
+        """if matching account is is acct_id then use amount, else use amount2"""
+        if item.acct_id == account_to_reconcile:
+            run_bal = start + item.amount
+            print(item, run_bal)
+            start = run_bal
+        elif item.acct_id2 == account_to_reconcile:
+            run_bal = start + item.amount2
+            print(item, run_bal)
+            start = run_bal
 
 
-        discrepancy = 0        
-        acct_end_bal = start
-        discrepancy = acct_end_bal - statement_end_bal
+    discrepancy = 0        
+    acct_end_bal = start
+    discrepancy = acct_end_bal - statement_end_bal
 
-        print(f'\nCurrent difference {discrepancy}.')
-        
-        print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
-    '''
+    print(f'\nCurrent difference {discrepancy}.')
+    
+    print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
+'''
 
 # throwaway view to run a function within context of app
 

@@ -74,6 +74,18 @@ class Accounts(db.Model):
     status = db.Column(db.String) #either open or closed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+    def accounts_to_dict(list_of_accounts):
+        account_list = []
+        for it in list_of_accounts:
+            s = {}
+            curbal, startbal = Transactions.get_current_balance(it.id)
+            s['acct_name'] = it.acct_name
+            s['id'] = it.id
+            s['current_balance'] = curbal
+            s['start_balance'] = it.startbal
+            account_list.append(s)
+        return account_list
+
 class Categories(db.Model):
     id = db.Column(db.Integer, primary_key=True )
     name = db.Column(db.String)
@@ -139,7 +151,7 @@ class Transactions(db.Model):
 
 class Reconciliation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date)
+    create_date = db.Column(db.DateTime)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     prior_end_balance = db.Column(db.Numeric)

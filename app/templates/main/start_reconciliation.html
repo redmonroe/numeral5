@@ -36,5 +36,6 @@
             {% endfor %}
         </p>
         <p>{{ form.submit() }}</p>
+        <div><a href="{{ url_for('main.view_reconciliations', username=current_user.username, id=acct_id) }}">see reconciliation history</a>
     </form>
 {% endblock %}
