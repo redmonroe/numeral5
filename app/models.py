@@ -103,7 +103,6 @@ class Transactions(db.Model):
 
     def get_current_balance(id): # must include transfers (as opposed to transaction journals which don't)
         from decimal import Decimal
-        print(id, type(id))
         results = []
         r = Transactions.query.filter(Transactions.acct_id2 ==
                                         id, Transactions.type != 'notposted').all()
@@ -121,12 +120,13 @@ class Transactions(db.Model):
 
         for item in results:
             if item.type == 'transfer' and item.acct_id2 == int(id):
-                bal_list.append(item.amount2)
+                bal_list.append(item.amount * -1)
             elif (item.type == 'transfer') and (item.acct_id == int(id)):
                 print('transfer amount:', item.amount)
                 bal_list.append(item.amount)
             elif item.type == 'transactions':
                 bal_list.append(item.amount)
+
 
         try:
             print('bal_list sum', sum(bal_list))
@@ -136,6 +136,18 @@ class Transactions(db.Model):
             curbal = Decimal(starting_balance.startbal) + 0
 
         return curbal, starting_balance
+
+class Reconciliation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date)
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    prior_end_balance = db.Column(db.Numeric)
+    statement_end_bal = db.Column(db.Numeric)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+
+
 
 @login.user_loader
 def load_user(id):

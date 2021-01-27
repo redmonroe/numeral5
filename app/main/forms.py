@@ -37,9 +37,16 @@ class TransactionCreationForm(FlaskForm):
     cat_id = SelectField('category?')
     submit = SubmitField('add transaction to register')
 
-
 class EditTransactionForm(TransactionCreationForm):
     submit = SubmitField('submit category changes')
+
+
+class ReconciliationForm(FlaskForm):
+    start_date = DateField('statement start date', validators=[DataRequired()])
+    end_date = DateField('statement end date', validators=[DataRequired()])
+    prior_end_balance = DecimalField('prior ending balance?', validators=[DataRequired()])
+    statement_end_bal = DecimalField('statement ending balance?', validators=[DataRequired()])
+    submit = SubmitField('start reconciling')
 
 '''
 class EditProfileForm(FlaskForm):

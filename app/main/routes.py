@@ -6,8 +6,8 @@ from flask_login import current_user, login_required
 from flask_babel import _, get_locale
 # from guess_language import guess_language
 from app import db
-from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm
-from app.models import User, Accounts, Categories, Transactions
+from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm, ReconciliationForm
+from app.models import User, Accounts, Categories, Transactions, Reconciliation
 # from app.translate import translate
 from app.main import bp
 
@@ -30,7 +30,17 @@ def accounts(username):
 
     r = Accounts.query.filter(Accounts.user_id == user.id).all()
 
-    return render_template('main/view_account.html', items=r)
+    account_list = []
+    for it in r:
+        s = {}
+        curbal, startbal = Transactions.get_current_balance(it.id)
+        s['acct_name'] = it.acct_name
+        s['id'] = it.id
+        s['current_balance'] = curbal
+        s['start_balance'] = it.startbal
+        account_list.append(s)
+
+    return render_template('main/view_account.html', items=account_list)
 
 @bp.route('/create_account/<username>/', methods=['GET', 'POST'])
 @login_required
@@ -341,23 +351,7 @@ def register(username, id):
     
     user = User.query.filter_by(username=username).first()
 
-    # results = []
     page = request.args.get('page', 1, type=int)
-
-
-    # we need if type transaction use acct_id1 if type transf
-    # results = Transactions.query.filter(or_(Transactions.user_id == user.id, Transactions.acct_id == id)).order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
-
-    '''
-
-           if item.type == 'transfer' and item.acct_id2 == int(id):
-                bal_list.append(item.amount2)
-            elif (item.type == 'transfer') and (item.acct_id == int(id)):
-                print('transfer amount:', item.amount)
-                bal_list.append(item.amount)
-            elif item.type == 'transactions':
-                bal_list.append(item.amount)
-    '''
 
     transactions_and_transfers_native = Transactions.acct_id == id
 
@@ -367,21 +361,9 @@ def register(username, id):
 
     or_filter = or_(*filter_args)
 
-
-    results = Transactions.query.filter(or_filter)
-    # results = Transactions.query.filter(and_(Transactions.type == 'transfer', Transactions.acct_id2 == int(id)))
-    
-    # results = Transactions.query.filter(and_(Transactions.type == 'transfer', Transactions.acct_id == int(id)))
-        # filter(and_(Transactions.type == 'transfer', Transactions.acct_id2 == int(id)))
-        # filter(Transactions.user_id == user.id).\
-        # paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
-
-    
+    results = Transactions.query.filter(or_filter) 
 
     results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
-
-    # for item in results:
-    #     print(item)
         
     curbal, startbal = Transactions.get_current_balance(id)
 
@@ -394,7 +376,95 @@ def register(username, id):
     return render_template('main/register.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url)
 
 
+@bp.route('/start_reconciliation/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def start_reconciliation(username, id):
+    user = User.query.filter_by(username=username).first()
 
+    form = ReconciliationForm()
+
+    if form.validate_on_submit():
+        new_reconciliation = Reconciliation()
+        new_reconciliation.user_id = user.id
+        new_reconciliation.start_date = form.start_date.data
+        new_reconciliation.end_date = form.end_date.data
+        new_reconciliation.prior_end_balance = form.prior_end_balance.data
+        new_reconciliation.statement_end_bal = form.statement_end_bal.data
+        new_reconciliation.acct_id = id
+    
+        db.session.add(new_reconciliation)
+        db.session.commit()
+        db.session.close()
+        flash('congratulations, you started reconciling . . .')
+    return render_template('main/start_reconciliation.html', username=username, form=form)
+
+    # return f'reconciliation {username} {id} '
+    """The basic structure of a reconciliation is 
+
+    1) pick account
+    2) start date
+    3) end date
+    4) get transactions for that period for that account
+
+    Args:
+        object ([type]): [description]
+    """
+    
+    '''
+        choice_row = Accounts.just_show_all_accounts()
+        selection = int(input('Please select account to reconcile: '))
+        account_to_reconcile = 0
+        for k, v in choice_row.items():
+            if selection == k:
+                account_to_reconcile = v
+
+        print('reconciliation account id:', account_to_reconcile)
+
+        date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
+        year, month, day = map(int, date_entry.split('/'))
+        strt_dt = date(year, month, day)
+
+        date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
+        year, month, day = map(int, date_entry.split('/'))
+        end_dt = date(year, month, day)
+
+        prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
+        statement_end_bal = Decimal(input('Please enter statement ending balance: '))
+
+        stuff_check = []
+        for stuff in s.query(Transactions).\
+            filter(or_(Transactions.acct_id == account_to_reconcile, Transactions.acct_id2 == account_to_reconcile)).\
+            filter(Transactions.date >= strt_dt, Transactions.date <= end_dt ).\
+            order_by(Transactions.date).all():
+            stuff_check.append(stuff)
+
+        start_bal = s.query(Accounts).filter(
+                Accounts.id == account_to_reconcile).first()
+
+        starting_balance = Decimal(start_bal.startbal)
+
+        start = prior_month_end_bal
+        print('---' * 30)
+        for item in stuff_check:
+            """if matching account is is acct_id then use amount, else use amount2"""
+            if item.acct_id == account_to_reconcile:
+                run_bal = start + item.amount
+                print(item, run_bal)
+                start = run_bal
+            elif item.acct_id2 == account_to_reconcile:
+                run_bal = start + item.amount2
+                print(item, run_bal)
+                start = run_bal
+
+
+        discrepancy = 0        
+        acct_end_bal = start
+        discrepancy = acct_end_bal - statement_end_bal
+
+        print(f'\nCurrent difference {discrepancy}.')
+        
+        print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
+    '''
 
 # throwaway view to run a function within context of app
 
