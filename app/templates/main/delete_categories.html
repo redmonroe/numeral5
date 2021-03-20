@@ -15,7 +15,7 @@
 <body>
     <h1>delete hi categories</h1>
       {% for item in items %}
-        <p>category : <a href={{ url_for('account_register', username=current_user.username, id=item.id)}}> {{ item.id }}</a> <div> select id to delete category:  <a href="{{ url_for('deletedcat', username=current_user.username, id=item.id)  }}"> {{ item.id }} {{ item.name }} {{ item.inorex }} </a>  </p>
+        <p>category : <a href={{ url_for('main.register', username=current_user.username, id=item.id)}}> {{ item.id }}</a> <div> select id to delete category:  <a href="{{ url_for('main.deletedcat', username=current_user.username, id=item.id)  }}"> {{ item.id }} {{ item.name }} {{ item.inorex }} </a>  </p>
         <hr>
       {% endfor %}
       <a href="{{ url_for('main.create_category', username=current_user.username) }}">create category</a>

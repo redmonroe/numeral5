@@ -6,16 +6,17 @@ from flask_login import current_user, login_required
 from flask_babel import _, get_locale
 # from guess_language import guess_language
 from app import db
-from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm, ReconciliationForm
-from app.models import User, Accounts, Categories, Transactions, Reconciliation
+from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm, ReconciliationForm, EditReconciliationForm, EmptyForm, ReportSelectForm
+from app.models import User, Accounts, Categories, Transactions, Reconciliation, Reports
 # from app.translate import translate
 from app.main import bp
 
 
-@bp.route('/')
-@bp.route('/index')
-@login_required
-def index():
+@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/index/<username>/', methods=['GET', 'POST'])
+
+def index(username=None):
+    print(username)
     string = 'hello world this is numeral4 & 5.  I am born December 10, 2020.'
     return render_template('main/index.html', title='sign in', string=string)
 
@@ -142,7 +143,7 @@ def create_category(username):
         db.session.close()
         flash('congratulations, you created a new category')
         # post/redirect/get pattern
-        return redirect(url_for('categories', username=username))
+        return redirect(url_for('main.categories', username=username))
 
     return render_template('main/create_categories.html', form=form)
 
@@ -214,11 +215,12 @@ def transactions(username):
     # post/redirect/get pattern
     return render_template('main/transactions.html', username=username, items=r)
 
-@bp.route('/create_transaction/<username>/', methods=['GET', 'POST'])
+@bp.route('/create_transaction/<username>/<lastpage>/', methods=['GET', 'POST'])
 @login_required
-def create_transaction(username):
+def create_transaction(username, id=None, lastpage=None):
     #username, #account_id
-
+    
+    print(lastpage)
     user = User.query.filter_by(username=username).first()
 
     # ''' code to create dynamics account list for form'''
@@ -257,7 +259,7 @@ def create_transaction(username):
         db.session.close()
         flash('congratulations, you created a new transaction')
         # post/redirect/get pattern
-        return redirect(url_for('main.register', username=username, id=form.acct_id.data))
+        return redirect(url_for('main.register', username=username, id=form.acct_id.data, page=lastpage))
 
     return render_template('main/create_transactions.html', form=form)
 
@@ -353,8 +355,15 @@ def register(username, id):
     results = Transactions.query.filter(or_filter) 
 
     results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+
+    
         
     curbal, startbal = Transactions.get_current_balance(id)
+
+    first_url = url_for('main.register', username=username, id=id,
+                        page=1) if results.has_next else None
+    final_url = url_for('main.register', username=username, id=id,
+                        page=results.pages) if results.has_next else None
 
     next_url = url_for('main.register', username=username, id=id,
                        page=results.next_num) if results.has_next else None
@@ -362,7 +371,7 @@ def register(username, id):
                        page=results.prev_num) if results.has_prev else None
 
 
-    return render_template('main/register.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url)
+    return render_template('main/register.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url, lastpage=page, first_url=first_url, final_url=final_url)
 
 @bp.route('/view_reconciliations/<username>/<id>', methods=['GET', 'POST'])
 @login_required
@@ -422,83 +431,155 @@ def start_reconciliation(username, id):
         db.session.commit()
         db.session.close()
         flash('congratulations, you started reconciling . . .')
-        return redirect(url_for('main.reconcile', username=username))
+        return redirect(url_for('main.reconcile', username=username, acct_id=id))
     return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=id)
 
-@bp.route('/reconcile/<username>', methods=['GET', 'POST'])
+@bp.route('/adjust_reconciliation/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
-def reconcile(username):
-     return render_template('main/reconcile.html', username=username)
+def adjust_reconciliation(username, rec_id):
 
+    user = User.query.filter_by(username=username).first()
+
+    reconciliation = Reconciliation.query.get(rec_id)
+
+    form = EditReconciliationForm(obj=reconciliation)
+    if form.validate_on_submit():
+        reconciliation.create_date = datetime.utcnow()
+        reconciliation.user_id = user.id
+        reconciliation.start_date = form.start_date.data
+        reconciliation.end_date = form.end_date.data
+        reconciliation.prior_end_balance = form.prior_end_balance.data
+        reconciliation.statement_end_bal = form.statement_end_bal.data
+        reconciliation.acct_id = id
+
+    return render_template('main/adjust_reconciliation.html', form=form)
+    #this comes from view rec by account
+
+@bp.route('/reconcile/<username>/<acct_id>', methods=['GET', 'POST'])
+@login_required
+
+def reconcile(username, acct_id):
+    #ingredients
+        # transactions by account
+        # between start and end dates
+
+
+    most_recent_reconciliation = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
+
+    from sqlalchemy import or_, and_
+    
+    user = User.query.filter_by(username=username).first()
+
+    page = request.args.get('page', 1, type=int)
+
+
+    ## this can be reduced along with searches in 
+
+    transactions_and_transfers_native = Transactions.acct_id == acct_id
+
+    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id)
+
+    reconciliation_dates = and_(Transactions.date >= most_recent_reconciliation.start_date, Transactions.date <= most_recent_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
+
+    filter_args = [transactions_and_transfers_native, transfers_foreign]
+
+    or_filter = or_(*filter_args)
+
+    results = Transactions.query.filter(or_filter) 
+
+    results = Transactions.query.filter(reconciliation_dates)
+
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+        
+    curbal, startbal = Transactions.get_current_balance(acct_id)
+
+   
+    
+    next_url = url_for('main.reconcile', username=username, id=id,
+                       page=results.next_num) if results.has_next else None
+    prev_url = url_for('main.reconcile', username=username, id=id,
+                       page=results.prev_num) if results.has_prev else None
+
+
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url)
+
+
+
+    # date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
+    # year, month, day = map(int, date_entry.split('/'))
+    # strt_dt = date(year, month, day)
+
+    # date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
+    # year, month, day = map(int, date_entry.split('/'))
+    # end_dt = date(year, month, day)
+
+    # prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
+    # statement_end_bal = Decimal(input('Please enter statement ending balance: '))
 
     
-# return f'reconciliation {username} {id} '
-"""The basic structure of a reconciliation is 
-
-1) pick account
-2) start date
-3) end date
-4) get transactions for that period for that account
-
-Args:
-    object ([type]): [description]
-"""
-
-'''
-    choice_row = Accounts.just_show_all_accounts()
-    selection = int(input('Please select account to reconcile: '))
-    account_to_reconcile = 0
-    for k, v in choice_row.items():
-        if selection == k:
-            account_to_reconcile = v
-
-    print('reconciliation account id:', account_to_reconcile)
-
-    date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
-    year, month, day = map(int, date_entry.split('/'))
-    strt_dt = date(year, month, day)
-
-    date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
-    year, month, day = map(int, date_entry.split('/'))
-    end_dt = date(year, month, day)
-
-    prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
-    statement_end_bal = Decimal(input('Please enter statement ending balance: '))
-
-    stuff_check = []
-    for stuff in s.query(Transactions).\
-        filter(or_(Transactions.acct_id == account_to_reconcile, Transactions.acct_id2 == account_to_reconcile)).\
-        filter(Transactions.date >= strt_dt, Transactions.date <= end_dt ).\
-        order_by(Transactions.date).all():
-        stuff_check.append(stuff)
-
-    start_bal = s.query(Accounts).filter(
-            Accounts.id == account_to_reconcile).first()
-
-    starting_balance = Decimal(start_bal.startbal)
-
-    start = prior_month_end_bal
-    print('---' * 30)
-    for item in stuff_check:
-        """if matching account is is acct_id then use amount, else use amount2"""
-        if item.acct_id == account_to_reconcile:
-            run_bal = start + item.amount
-            print(item, run_bal)
-            start = run_bal
-        elif item.acct_id2 == account_to_reconcile:
-            run_bal = start + item.amount2
-            print(item, run_bal)
-            start = run_bal
 
 
-    discrepancy = 0        
-    acct_end_bal = start
-    discrepancy = acct_end_bal - statement_end_bal
+    #  return render_template('main/reconcile.html', username=username)
 
-    print(f'\nCurrent difference {discrepancy}.')
-    
-    print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
-'''
+@bp.route('/index/<username>/popup', methods=['GET', 'POST'])
+@login_required
+def user_popup(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    form = EmptyForm()
+    return render_template('user_popup.html', user=user, form=form)
+
+
+
+
+
+
+
+@bp.route('/reports/<username>/', methods=['GET', 'POST'])
+@login_required
+def reports(username):
+    form = ReportSelectForm()
+    if form.validate_on_submit():
+        report_period = form.report_period.data
+        report_template = form.report_template.data
+        total = form.total_by_cat.data
+
+        output_list_of_tuples = Reports.report_query(username=username, report_template=report_template, report_period=report_period, total=total) 
+
+        flash('lily-livered sumbitch')
+
+        return render_template('main/reports_summary.html', username=username, form=form, transactions=output_list_of_tuples, report_period=report_period)
+
+    return render_template('main/reports_summary.html', username=username, form=form)
+
+
+# '''
+
+# start_bal = s.query(Accounts).filter(
+#         Accounts.id == account_to_reconcile).first()
+
+# starting_balance = Decimal(start_bal.startbal)
+
+# start = prior_month_end_bal
+# print('---' * 30)
+# for item in stuff_check:
+#     """if matching account is is acct_id then use amount, else use amount2"""
+#     if item.acct_id == account_to_reconcile:
+#         run_bal = start + item.amount
+#         print(item, run_bal)
+#         start = run_bal
+#     elif item.acct_id2 == account_to_reconcile:
+#         run_bal = start + item.amount2
+#         print(item, run_bal)
+#         start = run_bal
+
+
+# discrepancy = 0        
+# acct_end_bal = start
+# discrepancy = acct_end_bal - statement_end_bal
+
+# print(f'\nCurrent difference {discrepancy}.')
+
+# print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
 
 # throwaway view to run a function within context of app
 
@@ -523,42 +604,6 @@ def import_thing():
 
 
 
-'''
-@bp.before_app_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
-        db.session.commit()
-    g.locale = str(get_locale())
-
-
-@bp.route('/', methods=['GET', 'POST'])
-@bp.route('/index', methods=['GET', 'POST'])
-@login_required
-def index():
-    form = PostForm()
-    if form.validate_on_submit():
-        language = guess_language(form.post.data)
-        if language == 'UNKNOWN' or len(language) > 5:
-            language = ''
-        post = Post(body=form.post.data, author=current_user,
-                    language=language)
-        db.session.add(post)
-        db.session.commit()
-        flash(_('Your post is now live!'))
-        return redirect(url_for('main.index'))
-    page = request.args.get('page', 1, type=int)
-    posts = current_user.followed_posts().paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)
-    next_url = url_for('main.index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.index', page=posts.prev_num) \
-        if posts.has_prev else None
-    return render_template('index.html', title=_('Home'), form=form,
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
-
-'''
 
 '''
 @bp.route('/explore')

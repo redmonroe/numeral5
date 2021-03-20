@@ -84,3 +84,8 @@ n5/Scripts/Activate.ps1
 n5/Scripts/activate
 messages.pot
 n5_jupyter_sketches.ipynb
+app/translations/es/LC_MESSAGES/messages.po
+n5/Scripts/pywin32_postinstall.py
+n5/Scripts/pywin32_testall.py
+n5/share/jupyter/kernels/python3/logo-32x32.png
+n5/share/jupyter/kernels/python3/logo-64x64.png

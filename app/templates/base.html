@@ -14,7 +14,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">numeral5</a>
+                <a class="navbar-brand" href="{{ url_for('main.index', username=current_user.username) }}">numeral5</a>
                 <a class="navbar-brand" href="{{ url_for('main.accounts', username=current_user.username) }}">accounts</a>
                 <a class="navbar-brand" href="{{ url_for('main.categories', username=current_user.username) }}">categories</a>
                 <a class="navbar-brand" href="{{ url_for('main.transactions', username=current_user.username) }}">transactions</a>
@@ -51,20 +51,44 @@
 
 {% block scripts %}
     {{ super() }}
-    {{ moment.include_moment() }}
-    {{ moment.lang(g.locale) }}
+
     <script>
-        function translate(sourceElem, destElem, sourceLang, destLang) {
-            $(destElem).html('<img src="{{ url_for('static', filename='loading.gif') }}">');
-            $.post('/translate', {
-                text: $(sourceElem).text(),
-                source_language: sourceLang,
-                dest_language: destLang
-            }).done(function(response) {
-                $(destElem).text(response['text'])
-            }).fail(function() {
-                $(destElem).text("{{ _('Error: Could not contact server.') }}");
-            });
-        }
+    $(function() {
+        var timer = null;
+        var xhr = null;
+        $('.user_popup').hover(
+            function(event) {
+                // mouse in event handler
+                var elem = $(event.currentTarget);
+                timer = setTimeout(function() {
+                    timer = null;
+                    xhr = $.ajax(
+                        '/index/' + elem.first().text().trim() + '/popup').done(
+                            function(data) {
+                                xhr = null
+                                // create and display popup here
+                            }
+                        );
+                }, 1000);
+            },
+            function(event) {
+                // mouse out event handler
+                var elem = $(event.currentTarget);
+                if (timer) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+                else if (xhr) {
+                    xhr.abort();
+                    xhr = null;
+                }
+                else {
+                    elem.popover('destroy');
+                    // destroy popup here
+                }
+            }
+        )
+    });
+      
     </script>
 {% endblock %}

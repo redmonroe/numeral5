@@ -14,11 +14,10 @@
     <title>reconciliation history</title>
 </head>
 <body>
-    <h1>reconciliation history</h1>
+    <h1>reconciliation history for </h1>
       {% for item in items %}       
-      <div> id: {{item.id}} | created:{{ item.create_date }} | start: {{ item.start_date }} | end:{{ item.end_date  }} | prior end balance: {{ item.prior_end_balance }} | | statement ending balance: {{ item.statement_end_bal }} <a href="{{ url_for('main.edit_account', username=current_user.username, id=item.id) }}">click to adjust reconciliation</a> |
-      <a href="{{ url_for('main.delete_reconciliation', username=current_user.username, id=item.id, acct_id=item.acct_id) }}">delete </a> | <a href="{{ url_for('main.start_reconciliation', username=current_user.username, id=item.id) }}">reconcile</a>
-        <hr>
+      <div> rec id: {{item.id}} | created:{{ item.create_date }} | start: {{ item.start_date }} | end:{{ item.end_date  }} | prior end balance: {{ item.prior_end_balance }} | statement ending balance: {{ item.statement_end_bal }} | <a href="{{ url_for('main.adjust_reconciliation', username=current_user.username, rec_id=item.id) }}">adjust reconciliation</a> |
+      <a href="{{ url_for('main.delete_reconciliation', username=current_user.username, id=item.id, acct_id=item.acct_id) }}">delete </a> 
       {% endfor %}
       </form>
 </body>

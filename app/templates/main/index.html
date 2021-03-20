@@ -9,10 +9,13 @@
 
 </head>
 <body>
-    <p>Hi, {{ current_user.username }}!</p>
+    <span class="user_popup">
+        <p>Hi, <a href="{{url_for('main.index', username=current_user.username) }}"> {{ current_user.username }} </p>
+            </a>
+        </span>
+        
     <p>actions</p>
     {{  string  }}
-
     </form>
     <!-- Link back to Account View: -->
     <p><a href="/create_account">View Accounts & Access Ledgers</a></p>

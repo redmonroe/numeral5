@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from hashlib import md5
 from time import time
 from flask import current_app
@@ -20,14 +20,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    # posts = db.relationship('Post', backref='author', lazy='dynamic')
-    # about_me = db.Column(db.String(140))
-    # last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    # followed = db.relationship(
-    #     'User', secondary=followers,
-    #     primaryjoin=(followers.c.follower_id == id),
-    #     secondaryjoin=(followers.c.followed_id == id),
-    #     backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
+ 
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -128,7 +121,7 @@ class Transactions(db.Model):
         bal_list = []
         # gets starting balance from account id
         starting_balance = Accounts.query.filter(Accounts.id == id).first()
-        print('ok', starting_balance.startbal)
+        # print('ok', starting_balance.startbal)
 
         for item in results:
             if item.type == 'transfer' and item.acct_id2 == int(id):
@@ -159,7 +152,74 @@ class Reconciliation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
 
+class Reports(object):
+    @staticmethod
+    def report_query(username, report_period=None, report_template=None, total=None):
+        from sqlalchemy import extract, and_
+      
 
+        # this is ALWAYS part of queyr
+        if report_period == 'year':
+            period = date.today().year
+        elif report_period == 'last month':
+            period = date.today().month - 1
+            report_period = 'month'
+            print(period)
+            # period = now.month-1 if now.month > 1 else 12
+        elif report_period == 'month':
+            period = date.today().month
+
+        user = User.query.filter_by(username=username).first()
+
+        queries = []
+
+        if report_template == 'default':
+            queries.append(Transactions.user_id == user.id)
+            queries.append(extract(report_period, Transactions.date) == period)
+        elif report_template == 'posted':
+            queries.append(Transactions.user_id == user.id)
+            queries.append(Transactions.type != 'notposted')
+            queries.append(Transactions.type != 'transfers')
+            queries.append(extract(report_period, Transactions.date) == period)
+
+        print (report_template, queries)
+        if total: 
+            cat_list = Categories.query.filter(Categories.user_id == user.id).all()
+            catid_dict = {i.id:[] for i in cat_list}
+
+        # main iteration
+        output_list_of_tuples = []
+        for transaction in Transactions.query.filter(and_(*queries)):
+            
+            name = transaction
+            other = 'add more info here'
+            row = (name, other)
+            output_list_of_tuples.append(row)
+
+
+            if total:
+                for k, v in catid_dict.items():                
+                    if k == transaction.cat_id:
+                        catid_dict[k].append(float(transaction.amount))
+
+        if total: 
+            cat_tuple = ()
+            renamed_list = []
+            output_list_of_tuples = []
+            for key, value in catid_dict.items():
+                category = Categories.query.get(key)
+                cat_tuple = (category.name, value)
+                renamed_list.append(cat_tuple)
+
+            for item in renamed_list:
+                name = item[0]
+                total = sum(item[1])
+                cat_tuple = (name, total)
+                output_list_of_tuples.append(cat_tuple)
+
+        # print(output_list_of_tuples)
+
+        return output_list_of_tuples
 
 @login.user_loader
 def load_user(id):

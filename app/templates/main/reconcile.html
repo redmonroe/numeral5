@@ -1,12 +1,44 @@
-<div class="form-check">
-    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-    <label class="form-check-label" for="flexCheckDefault">
-      Default checkbox
-    </label>
-  </div>
-  <div class="form-check">
-    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
-    <label class="form-check-label" for="flexCheckChecked">
-      Checked checkbox
-    </label>
-  </div>
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>reconcile</title>
+</head>
+<body>
+    <h1>reconcile, user id = {{ id }}, starting balance = {{ startbal.startbal }}</h1>
+      {% for item in items %}
+      <p>{{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
+            <class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="inlineCheckbox1" onclick="window.location.href='{{ url_for( 'main.index') }}' value="option1">         
+
+        {% endfor %}
+        <p>current balance: {{ curbal }}</p>
+
+      <nav aria-label="...">
+          <ul class="pager">
+              <li class="previous{% if not prev_url %} disabled{% endif %}">
+                  <a href="{{ prev_url or '#' }}">
+                      <span aria-hidden="true">&larr;</span> {{ _('Back') }}
+                  </a>
+              </li>
+              <li class="next{% if not next_url %} disabled{% endif %}">
+                  <a href="{{ next_url or '#' }}">
+                      {{ _('More Transactions') }} <span aria-hidden="true">&rarr;</span>
+                  </a>
+              </li>
+          </ul>
+      </nav>
+    
+</body>
+</html>
+{% endblock %}
