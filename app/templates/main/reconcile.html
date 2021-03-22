@@ -65,9 +65,9 @@
 
                 </td>                        
                 <td>
-                    <input type="hidden" class="form-control-inline" id="inlineFormInputName2" name=current2 value="{{ item.id }}">
+                    <input class="form-check-input current" data-amount="{{ item.amount }}" type="checkbox" id="inlineCheckbox1" value="option1">
+                    <label class="form-check-label current" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">            
                     
-                    <button type="submit" id='current_btn' data-amount="{{ item.amount }}" name="{{ item.id }}" class="btn btn-sec btn-sm current">include?</button>       
                 </td> 
         
             </tr>
@@ -89,26 +89,27 @@
 
 <script type=text/javascript>
 
-     $(function() {
-      $('.current').on('click', function() {
-        let txnAmount = $(this).data("amount");
-        // alert(txnAmount);
-        $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
-            amount: txnAmount
-        }, function(data) {
-         $("#result").text(data.result);
+    $(document).ready(function() {
+    //set initial state.
+    $('.current').val(this.checked);
+
+    $('.current').change(function() {
+        if(this.checked) {
+            let txnAmount = $(this).data("amount");
+            alert(txnAmount);
+            $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                amount: txnAmount
+            }, function(data) {
+                $("#result").text(data.result);
         });
         return false;
-      });
+            }
+        });
     });
 
-
+ 
 </script>
-
-
-
-
-    {% endblock %}
+{% endblock %}
     
 </body>
 </html>
