@@ -200,6 +200,9 @@ def deletedcat(username, id):
     # post/redirect/get pattern
     return redirect(url_for('main.categories', username=username))
 
+'''
+transactions
+'''
 @bp.route('/transactions/<username>', methods=['GET', 'POST'])
 @login_required
 def transactions(username):
@@ -373,6 +376,11 @@ def register(username, id):
 
     return render_template('main/register.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url, lastpage=page, first_url=first_url, final_url=final_url)
 
+
+'''
+reconciliations
+'''
+
 @bp.route('/view_reconciliations/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def view_reconciliations(username, id):
@@ -457,7 +465,6 @@ def adjust_reconciliation(username, rec_id):
 
 @bp.route('/reconcile/<username>/<acct_id>', methods=['GET', 'POST'])
 @login_required
-
 def reconcile(username, acct_id):
     #ingredients
         # transactions by account
@@ -520,6 +527,20 @@ def reconcile(username, acct_id):
 
 
     #  return render_template('main/reconcile.html', username=username)
+
+@bp.route('/_reconciled')
+@login_required
+def reconciled():
+    reconciled_list = []
+
+    a = request.args.get('amount', 0, type=str)
+    
+    # b = request.args.get('b', 0, type=int)
+    reconciled_list.append(float(a))
+    a = sum(reconciled_list)
+    print(a)
+    return jsonify(result=a)
+
 
 @bp.route('/index/<username>/popup', methods=['GET', 'POST'])
 @login_required

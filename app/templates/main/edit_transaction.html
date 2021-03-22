@@ -56,6 +56,5 @@
             {% endfor %}
         </p>
         <p>{{ form.submit() }}</p>
-        <a href="{{ url_for('main.transactions', username=current_user.username) }}">view transactions</a>
     </form>
 {% endblock %}
