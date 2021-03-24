@@ -14,6 +14,7 @@
     </style>
     <title>reconcile</title>
     <link href="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/currency.js@~2.0.0/dist/currency.min.js"></script>
 
 </head>
 
@@ -65,8 +66,8 @@
 
                 </td>                        
                 <td>
-                    <input class="form-check-input current" data-amount="{{ item.amount }}" type="checkbox" id="inlineCheckbox1" value="option1">
-                    <label class="form-check-label current" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">            
+                    <input class="form-check-input current" value="{{ item.amount }}" type="checkbox" id="inlineCheckbox1">
+                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">            
                     
                 </td> 
         
@@ -90,22 +91,81 @@
 <script type=text/javascript>
 
     $(document).ready(function() {
-    //set initial state.
-    $('.current').val(this.checked);
+        //set initial state.
+        //  $('.current').val(this.checked);
 
     $('.current').change(function() {
+        let sumArray = [];
+        const reducer = (acc, currentVal) => currency(acc).add(currentVal);       
+
         if(this.checked) {
-            let txnAmount = $(this).data("amount");
-            alert(txnAmount);
-            $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
-                amount: txnAmount
-            }, function(data) {
-                $("#result").text(data.result);
+            let collection = document.getElementsByClassName('current');
+            //item is an HTMLcollections
+
+            Array.from(collection).forEach(function (element) {
+            if (element.checked == true) {                      
+                let floatElement = currency(element.value); //currency returns an object not just a number     
+                sumArray.push(floatElement.value);
+                let sum = sumArray.reduce(reducer); 
+                console.log(typeof(sum));
+                    if (typeof(sum) === "number") {
+                        console.log("sum:", sum);      
+                        $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                        amount: sum
+                    }, function(data) {
+                        $("#result").text(data.result);
+                    })                    
+                    } else {
+                        console.log("sum value:", sum); 
+                        $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                        amount: sum.value
+                    }, function(data) {
+                        $("#result").text(data.result);
+                    })      
+                    } 
+                }       
+            });
+            
+        } else {      
+        console.log("else branch");   
+        let collection = document.getElementsByClassName('current');
+
+        Array.from(collection).forEach(function (element) {
+        if (element.checked == true) {
+            let floatElement = currency(element.value)
+            sumArray.push(floatElement.value);
+            let sum = sumArray.reduce(reducer);
+            console.log(typeof(sum));
+                if (typeof(sum) === "object") {
+                    $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                    amount:sum.value
+                    }, function(data) {
+                    $("#result").text(data.result);
+                })
+                 } else {
+                    $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                    amount:sum
+                    }, function(data) {
+                    $("#result").text(data.result);
+                })
+
+
+                 }
+
+                      
+        }        
         });
-        return false;
             }
         });
     });
+
+
+          
+
+   
+ 
+    
+
 
  
 </script>
