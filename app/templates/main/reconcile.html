@@ -13,8 +13,6 @@
       div {text-align: left;}
     </style>
     <title>reconcile</title>
-    <link href="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/currency.js@~2.0.0/dist/currency.min.js"></script>
 
 </head>
 
@@ -74,10 +72,29 @@
             </tr>
             {% endfor %}
         </tbody>
-        </table>     
+        </table>
+    <table class="table table-striped" id="table" data-toggle="table" data-height="460">
+        <thead class='thead-dark'>
+            <tr>
+                <th>
+                    <h4>total selected</h4>
+                </th>
+                <th>
+                    <h4>ending statement balance</h4>
+                </th>
+            </tr>        
+        </thead>
+        <tbody>
+            <tr>
+                <td><span id=result></span></td>
+            
+            
+                <td>{{ prior_end_bal }}</span></td>
+            </tr>
+        </tbody>
+    </table>     
 
-    <h3>total selected</h3>
-    <span id=result></span>
+    
   
 
 
@@ -110,14 +127,14 @@
                 console.log(typeof(sum));
                     if (typeof(sum) === "number") {
                         console.log("sum:", sum);      
-                        $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                        $.getJSON($SCRIPT_ROOT + '/_reconciled', {
                         amount: sum
                     }, function(data) {
                         $("#result").text(data.result);
                     })                    
                     } else {
                         console.log("sum value:", sum); 
-                        $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                        $.getJSON($SCRIPT_ROOT + '/_reconciled', {
                         amount: sum.value
                     }, function(data) {
                         $("#result").text(data.result);
@@ -137,13 +154,15 @@
             let sum = sumArray.reduce(reducer);
             console.log(typeof(sum));
                 if (typeof(sum) === "object") {
-                    $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                    $.getJSON($SCRIPT_ROOT + '/_reconciled', {
                     amount:sum.value
                     }, function(data) {
                     $("#result").text(data.result);
                 })
                  } else {
-                    $.getJSON('http://127.0.0.1:5000/' + '/_reconciled', {
+                    console.log(typeof(sum));
+                    console.log(sum);
+                    $.getJSON($SCRIPT_ROOT + '/_reconciled', {
                     amount:sum
                     }, function(data) {
                     $("#result").text(data.result);

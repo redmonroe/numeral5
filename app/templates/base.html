@@ -52,6 +52,13 @@
 {% block scripts %}
     {{ super() }}
 
+    <link href="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/currency.js@~2.0.0/dist/currency.min.js"></script>
+
+    <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+
     <script>
     $(function() {
         var timer = null;

@@ -479,7 +479,6 @@ def reconcile(username, acct_id):
 
     page = request.args.get('page', 1, type=int)
 
-
     ## this can be reduced along with searches in 
 
     transactions_and_transfers_native = Transactions.acct_id == acct_id
@@ -500,6 +499,7 @@ def reconcile(username, acct_id):
         
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
+    prior_end_bal = most_recent_reconciliation.statement_end_bal
    
     
     next_url = url_for('main.reconcile', username=username, id=id,
@@ -508,25 +508,8 @@ def reconcile(username, acct_id):
                        page=results.prev_num) if results.has_prev else None
 
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url, prior_end_bal=prior_end_bal)
 
-
-
-    # date_entry = input('Enter a start date from statement (i.e. 2017/07/21)')
-    # year, month, day = map(int, date_entry.split('/'))
-    # strt_dt = date(year, month, day)
-
-    # date_entry = input('Enter an end date from statement (i.e. 2017/07/21)')
-    # year, month, day = map(int, date_entry.split('/'))
-    # end_dt = date(year, month, day)
-
-    # prior_month_end_bal = Decimal(input('Please enter a prior month ending balance: '))
-    # statement_end_bal = Decimal(input('Please enter statement ending balance: '))
-
-    
-
-
-    #  return render_template('main/reconcile.html', username=username)
 
 @bp.route('/_reconciled')
 @login_required

@@ -103,6 +103,8 @@ class Transactions(db.Model):
     amount2 = db.Column(db.Numeric)
     acct_id2 = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    reconciled = db.Column(db.Boolean)
+    agg_amount = db.Column(db.Numeric)
 
     # may need a repr
 
