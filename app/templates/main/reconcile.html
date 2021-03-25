@@ -132,52 +132,65 @@
         let returnBal = currency(element.getAttribute('value'));
         returnValue = returnBal.value;
         console.log(returnValue);        
-        console.log(typeof(returnValue));                
     });
         return returnValue;
     }
 
     let startValue = selectValues('div.startbal');
-    console.log('startValue:', startValue);
+    // console.log('startValue:', startValue);
     let endValue = selectValues('div.endbal');
-    console.log('endValue:', endValue);
+    // console.log('endValue:', endValue);
 
     function compareBalance (startBal, reconciledChange) {
         console.log('startBal', startBal, 'reconciledCh', reconciledChange);
         let compEndBal = startBal + reconciledChange
-        console.log('compare balance:', compEndBal)
+        // console.log('compare balance:', compEndBal)
         $('#difference').text(currency(compEndBal));
         return compEndBal;
     }
 
     function discrepancyWork (compEndBal, UEndBal) {
         let discrepancy = UEndBal - compEndBal
-        console.log('discrepancy:', discrepancy)
+        // console.log('discrepancy:', discrepancy)
         $('#discrepancy').text(currency(discrepancy));
         return discrepancy;
     }
 
     function reconcileChanges(sumChange, startValue, endValue) {
+        console.log(typeof(sumChange), sumChange);
         if (typeof(sumChange) === "number") {
-                console.log("sumChange:", sumChange);      
-                let compEndBal = compareBalance(startValue, sumChange);
-                let discrepancy = discrepancyWork(compEndBal, endValue);
-                $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                amount: sumChange, 
-                difference: compEndBal
-            }, function(data) {
-                $("#reconciledChanges").text(data.result);
-            })                    
-            } else {
-                console.log("sumChange value:", sumChange.value); 
-                let compEndBal = compareBalance(startValue, sumChange.value);
-                let discrepancy = discrepancyWork(compEndBal, endValue);
-                $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                amount: sumChange.value, 
-                difference: compEndBal
-            }, function(data) {
-                $("#reconciledChanges").text(data.result);
-            })      
+            console.log("sumChange (branch 1):", sumChange);      
+            let compEndBal = compareBalance(startValue, sumChange);
+            let discrepancy = discrepancyWork(compEndBal, endValue);
+            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
+            amount: sumChange, 
+            difference: compEndBal
+        },  function(data) {
+            $("#reconciledChanges").text(data.result);
+        })                    
+        } else if (typeof(sumChange) === 'object') {
+            console.log("sumChange value (branch object):", sumChange.value); 
+            let compEndBal = compareBalance(startValue, sumChange.value);
+            let discrepancy = discrepancyWork(compEndBal, endValue);
+            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
+            amount: sumChange.value, 
+            difference: compEndBal
+        },  function(data) {
+            $("#reconciledChanges").text(data.result);
+        })      
+        }            
+        else {
+            let sumChange = 0;
+            console.log("sumChange (branch zero):", sumChange); 
+            let compEndBal = compareBalance(startValue, sumChangee);
+            let discrepancy = discrepancyWork(compEndBal, endValue);
+            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
+            amount: sumChange, 
+            difference: compEndBal
+        },  function(data) {
+            $("#reconciledChanges").text(data.result);
+        })      
+          
             } 
     }    
     $('.current').change(function() {
