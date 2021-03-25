@@ -514,15 +514,19 @@ def reconcile(username, acct_id):
 @bp.route('/_reconciled')
 @login_required
 def reconciled():
-    reconciled_list = []
+    amount_list = []
+    difference_list = []
 
-    a = request.args.get('amount', 0, type=str)
-    
-    # b = request.args.get('b', 0, type=int)
-    reconciled_list.append(float(a))
-    a = sum(reconciled_list)
-    print(a)
-    return jsonify(result=a)
+    amount = request.args.get('amount', 0, type=str)
+    difference = request.args.get('difference', 0, type=str)    
+   
+    amount_list.append(float(amount))
+    difference_list.append(float(amount))
+    amount = sum(amount_list)
+    difference = sum(difference_list)
+    print(amount)
+    print('difference:', difference)
+    return jsonify(result=amount)
 
 
 @bp.route('/index/<username>/popup', methods=['GET', 'POST'])

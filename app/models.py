@@ -153,6 +153,7 @@ class Reconciliation(db.Model):
     statement_end_bal = db.Column(db.Numeric)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+    # finalized = db.Column(db.Boolean)
 
 class Reports(object):
     @staticmethod

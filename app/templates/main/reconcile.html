@@ -17,7 +17,9 @@
 </head>
 
 <body>
+    <div class=startbal value="{{ startbal.startbal }}">
     <h1>reconcile, starting balance = {{ startbal.startbal }}</h1>
+    </div>
 
 
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
@@ -77,26 +79,39 @@
         <thead class='thead-dark'>
             <tr>
                 <th>
-                    <h4>total selected</h4>
+                    <h4>starting balance</h4>
                 </th>
                 <th>
-                    <h4>ending statement balance</h4>
+                    <h4>reconciledChanges</h4>
+                </th>
+                <th>
+                    <h4>U-entered ending st bal</h4>
+                </th>
+                <th>
+                    <h4>computed end bal</h4>
+                </th>
+                <th>
+                    <h4>difference</h4>
                 </th>
             </tr>        
         </thead>
         <tbody>
             <tr>
-                <td><span id=result></span></td>
+                <td><span>{{ startbal.startbal }}</span></td>   
+
+                <td><span id=reconciledChanges></span></td>
             
-            
-                <td>{{ prior_end_bal }}</span></td>
+                
+                <div class=endbal value="{{ prior_end_bal }}"></divclass>
+                    <td> {{ prior_end_bal }} </td>
+                </div>
+                
+                <td><span id=difference></span></td>
+
+                <td><span id=discrepancy></span></td>
             </tr>
         </tbody>
     </table>     
-
-    
-  
-
 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
 
@@ -108,9 +123,63 @@
 <script type=text/javascript>
 
     $(document).ready(function() {
-        //set initial state.
-        //  $('.current').val(this.checked);
+    //set initial state   
 
+    function selectValues (querySelector) {
+        const returnArray = document.querySelectorAll(querySelector);   
+
+        returnArray.forEach(function(element) {
+        let returnBal = currency(element.getAttribute('value'));
+        returnValue = returnBal.value;
+        console.log(returnValue);        
+        console.log(typeof(returnValue));                
+    });
+        return returnValue;
+    }
+
+    let startValue = selectValues('div.startbal');
+    console.log('startValue:', startValue);
+    let endValue = selectValues('div.endbal');
+    console.log('endValue:', endValue);
+
+    function compareBalance (startBal, reconciledChange) {
+        console.log('startBal', startBal, 'reconciledCh', reconciledChange);
+        let compEndBal = startBal + reconciledChange
+        console.log('compare balance:', compEndBal)
+        $('#difference').text(currency(compEndBal));
+        return compEndBal;
+    }
+
+    function discrepancyWork (compEndBal, UEndBal) {
+        let discrepancy = UEndBal - compEndBal
+        console.log('discrepancy:', discrepancy)
+        $('#discrepancy').text(currency(discrepancy));
+        return discrepancy;
+    }
+
+    function reconcileChanges(sumChange, startValue, endValue) {
+        if (typeof(sumChange) === "number") {
+                console.log("sumChange:", sumChange);      
+                let compEndBal = compareBalance(startValue, sumChange);
+                let discrepancy = discrepancyWork(compEndBal, endValue);
+                $.getJSON($SCRIPT_ROOT + '/_reconciled', {
+                amount: sumChange, 
+                difference: compEndBal
+            }, function(data) {
+                $("#reconciledChanges").text(data.result);
+            })                    
+            } else {
+                console.log("sumChange value:", sumChange.value); 
+                let compEndBal = compareBalance(startValue, sumChange.value);
+                let discrepancy = discrepancyWork(compEndBal, endValue);
+                $.getJSON($SCRIPT_ROOT + '/_reconciled', {
+                amount: sumChange.value, 
+                difference: compEndBal
+            }, function(data) {
+                $("#reconciledChanges").text(data.result);
+            })      
+            } 
+    }    
     $('.current').change(function() {
         let sumArray = [];
         const reducer = (acc, currentVal) => currency(acc).add(currentVal);       
@@ -123,70 +192,26 @@
             if (element.checked == true) {                      
                 let floatElement = currency(element.value); //currency returns an object not just a number     
                 sumArray.push(floatElement.value);
-                let sum = sumArray.reduce(reducer); 
-                console.log(typeof(sum));
-                    if (typeof(sum) === "number") {
-                        console.log("sum:", sum);      
-                        $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                        amount: sum
-                    }, function(data) {
-                        $("#result").text(data.result);
-                    })                    
-                    } else {
-                        console.log("sum value:", sum); 
-                        $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                        amount: sum.value
-                    }, function(data) {
-                        $("#result").text(data.result);
-                    })      
-                    } 
+                let sumChange = sumArray.reduce(reducer); 
+                reconcileChanges(sumChange, startValue, endValue);
                 }       
             });
             
         } else {      
-        console.log("else branch");   
+     
         let collection = document.getElementsByClassName('current');
 
         Array.from(collection).forEach(function (element) {
         if (element.checked == true) {
             let floatElement = currency(element.value)
             sumArray.push(floatElement.value);
-            let sum = sumArray.reduce(reducer);
-            console.log(typeof(sum));
-                if (typeof(sum) === "object") {
-                    $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                    amount:sum.value
-                    }, function(data) {
-                    $("#result").text(data.result);
-                })
-                 } else {
-                    console.log(typeof(sum));
-                    console.log(sum);
-                    $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-                    amount:sum
-                    }, function(data) {
-                    $("#result").text(data.result);
-                })
-
-
-                 }
-
-                      
+            let sumChange = sumArray.reduce(reducer);
+            reconcileChanges(sumChange, startValue, endValue);
         }        
         });
             }
         });
-    });
-
-
-          
-
-   
- 
-    
-
-
- 
+    }); 
 </script>
 {% endblock %}
     

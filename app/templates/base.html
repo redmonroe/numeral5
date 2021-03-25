@@ -19,6 +19,8 @@
                 <a class="navbar-brand" href="{{ url_for('main.categories', username=current_user.username) }}">categories</a>
                 <a class="navbar-brand" href="{{ url_for('main.transactions', username=current_user.username) }}">transactions</a>
                 <a class="navbar-brand" href="{{ url_for('main.view_reconciliations_by_account', username=current_user.username) }}">reconciliations</a>
+                <a class="navbar-brand"
+                    href="{{ url_for('main.reports', username=current_user.username) }}">reports</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                </ul>
