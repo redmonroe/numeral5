@@ -466,10 +466,9 @@ def adjust_reconciliation(username, rec_id):
 @bp.route('/reconcile/<username>/<acct_id>', methods=['GET', 'POST'])
 @login_required
 def reconcile(username, acct_id):
-    #ingredients
+        #ingredients
         # transactions by account
         # between start and end dates
-
 
     most_recent_reconciliation = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
 
@@ -500,6 +499,50 @@ def reconcile(username, acct_id):
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
     prior_end_bal = most_recent_reconciliation.statement_end_bal
+   
+    
+    # next_url = url_for('main.reconcile', username=username, id=id,
+    #                    page=results.next_num) if results.has_next else None
+    # prev_url = url_for('main.reconcile', username=username, id=id,
+    #                    page=results.prev_num) if results.has_prev else None
+
+
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal)
+
+
+@bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
+@login_required
+def continue_reconcile(username, rec_id):
+    mr_reconciliation = Reconciliation.query.get(rec_id)
+
+    from sqlalchemy import or_, and_
+    
+    user = User.query.filter_by(username=username).first()
+
+    page = request.args.get('page', 1, type=int)
+
+    ## this can be reduced along with searches in 
+
+    acct_id = mr_reconciliation.acct_id
+    transactions_and_transfers_native = Transactions.acct_id == acct_id
+
+    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id)
+
+    reconciliation_dates = and_(Transactions.date >= mr_reconciliation.start_date, Transactions.date <= mr_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
+
+    filter_args = [transactions_and_transfers_native, transfers_foreign]
+
+    or_filter = or_(*filter_args)
+
+    results = Transactions.query.filter(or_filter) 
+
+    results = Transactions.query.filter(reconciliation_dates)
+
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+        
+    curbal, startbal = Transactions.get_current_balance(acct_id)
+
+    prior_end_bal = mr_reconciliation.statement_end_bal
    
     
     next_url = url_for('main.reconcile', username=username, id=id,

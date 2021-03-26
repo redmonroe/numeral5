@@ -18,7 +18,8 @@
 
 <body>
     <div class=startbal value="{{ startbal.startbal }}">
-    <h1>reconcile, starting balance = {{ startbal.startbal }}</h1>
+    <h1>reconcile</h1>
+    <button type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button">finished</button>
     </div>
 
 
@@ -66,8 +67,8 @@
 
                 </td>                        
                 <td>
-                    <input class="form-check-input current" value="{{ item.amount }}" type="checkbox" id="inlineCheckbox1">
-                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">            
+                    <input class="form-check-input current" value="{{ item.amount }}" name="{{ item.id }}" type="checkbox" id="inlineCheckbox1">
+                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}"            
                     
                 </td> 
         
@@ -75,6 +76,8 @@
             {% endfor %}
         </tbody>
         </table>
+
+
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
         <thead class='thead-dark'>
             <tr>
@@ -99,8 +102,7 @@
             <tr>
                 <td><span>{{ startbal.startbal }}</span></td>   
 
-                <td><span id=reconciledChanges></span></td>
-            
+                <td><span id=reconciledChanges></span></td>            
                 
                 <div class=endbal value="{{ prior_end_bal }}"></divclass>
                     <td> {{ prior_end_bal }} </td>
@@ -120,18 +122,18 @@
 <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
 
 
-<script type=text/javascript>
+<script type=text/javascript>   
 
     $(document).ready(function() {
     //set initial state   
+     $('.finished').hide();  
 
     function selectValues (querySelector) {
         const returnArray = document.querySelectorAll(querySelector);   
 
         returnArray.forEach(function(element) {
         let returnBal = currency(element.getAttribute('value'));
-        returnValue = returnBal.value;
-        console.log(returnValue);        
+        returnValue = returnBal.value;   
     });
         return returnValue;
     }
@@ -144,20 +146,24 @@
     function compareBalance (startBal, reconciledChange) {
         console.log('startBal', startBal, 'reconciledCh', reconciledChange);
         let compEndBal = startBal + reconciledChange
-        // console.log('compare balance:', compEndBal)
         $('#difference').text(currency(compEndBal));
         return compEndBal;
     }
 
     function discrepancyWork (compEndBal, UEndBal) {
-        let discrepancy = UEndBal - compEndBal
-        // console.log('discrepancy:', discrepancy)
-        $('#discrepancy').text(currency(discrepancy));
+        let discrepancy = currency(UEndBal).subtract(compEndBal)
+        console.log('discrepancy trying to match:', typeof(discrepancy.value));
+            if (discrepancy.value === 0.00) {
+            console.log('fuck');
+            $('.finished').show();        
+            }
+
+        $('#discrepancy').text(discrepancy);
         return discrepancy;
     }
 
     function reconcileChanges(sumChange, startValue, endValue) {
-        console.log(typeof(sumChange), sumChange);
+
         if (typeof(sumChange) === "number") {
             console.log("sumChange (branch 1):", sumChange);      
             let compEndBal = compareBalance(startValue, sumChange);
@@ -198,6 +204,7 @@
         const reducer = (acc, currentVal) => currency(acc).add(currentVal);       
 
         if(this.checked) {
+            console.log('*****branch checked');
             let collection = document.getElementsByClassName('current');
             //item is an HTMLcollections
 
@@ -207,20 +214,31 @@
                 sumArray.push(floatElement.value);
                 let sumChange = sumArray.reduce(reducer); 
                 reconcileChanges(sumChange, startValue, endValue);
+                discrepancyZero();
                 }       
             });
             
-        } else {      
+        } else if (!this.checked) {   
+            console.log('******branch unchecked');   
      
-        let collection = document.getElementsByClassName('current');
+            let collection = document.getElementsByClassName('current');
 
-        Array.from(collection).forEach(function (element) {
-        if (element.checked == true) {
-            let floatElement = currency(element.value)
-            sumArray.push(floatElement.value);
-            let sumChange = sumArray.reduce(reducer);
-            reconcileChanges(sumChange, startValue, endValue);
-        }        
+            Array.from(collection).forEach(function (element) {
+            if (element.checked == true) {
+                let floatElement = currency(element.value)
+                sumArray.push(floatElement.value);
+                let sumChange = sumArray.reduce(reducer);
+                reconcileChanges(sumChange, startValue, endValue);
+            }  
+            
+            else {
+                console.log('******branch null'); 
+                $('#reconciledChanges').text('0');
+
+            }
+
+            
+
         });
             }
         });
@@ -231,3 +249,6 @@
 </body>
 </html>
 {% endblock %}
+
+
+       

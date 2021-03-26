@@ -58,46 +58,8 @@
     <script src="https://unpkg.com/currency.js@~2.0.0/dist/currency.min.js"></script>
 
     <script type=text/javascript>
-            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
 
-    <script>
-    $(function() {
-        var timer = null;
-        var xhr = null;
-        $('.user_popup').hover(
-            function(event) {
-                // mouse in event handler
-                var elem = $(event.currentTarget);
-                timer = setTimeout(function() {
-                    timer = null;
-                    xhr = $.ajax(
-                        '/index/' + elem.first().text().trim() + '/popup').done(
-                            function(data) {
-                                xhr = null
-                                // create and display popup here
-                            }
-                        );
-                }, 1000);
-            },
-            function(event) {
-                // mouse out event handler
-                var elem = $(event.currentTarget);
-                if (timer) {
-                    clearTimeout(timer);
-                    timer = null;
-                }
-                else if (xhr) {
-                    xhr.abort();
-                    xhr = null;
-                }
-                else {
-                    elem.popover('destroy');
-                    // destroy popup here
-                }
-            }
-        )
-    });
-      
-    </script>
 {% endblock %}
