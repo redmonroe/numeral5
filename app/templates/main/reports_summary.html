@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<head>
+    <title>Reports Summary</title>
+</head>
+<body>
+    <h1>Reports Summary</h1>
+
+        <form action="" method="post">
+            <p> {{ report_period }} </p>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.report_period.label }}<br>
+                {{ form.report_period }}<br>
+                {% for error in form.report_period.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.report_template.label }}<br>
+                {{ form.report_template }}<br>
+                {% for error in form.report_template.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.total_by_cat.label }}<br>
+                {{ form.total_by_cat }}<br>
+                {% for error in form.total_by_cat.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+        <hr>
+    <p>{{ form.submit() }}</p>
+        </form>
+        {% for transaction in transactions %}
+        <br> {{ transaction[0] }} {{ transaction[1]}}
+        {% endfor %}
+    
+</body>
+</html>
+{% endblock %}
+
+

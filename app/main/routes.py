@@ -563,6 +563,15 @@ def reconciled():
     str_id_list = ids.getlist('idArray[]')
     id_list = [int(item) for item in str_id_list]
 
+
+    for idd in id_list:
+        txn = Transactions.query.get(idd)
+        txn.reconciled = True
+        print(txn)
+
+
+
+
     amount = request.args.get('amount', 0, type=str)
    
     amount_list.append(float(amount))

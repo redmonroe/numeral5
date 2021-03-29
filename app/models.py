@@ -106,7 +106,8 @@ class Transactions(db.Model):
     reconciled = db.Column(db.Boolean)
     agg_amount = db.Column(db.Numeric)
 
-    # may need a repr
+    def __repr__ (self):
+        return f"transaction: {self.id} {self.reconciled}"
 
     def get_current_balance(id): # must include transfers (as opposed to transaction journals which don't)
         from decimal import Decimal
