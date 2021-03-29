@@ -62,14 +62,13 @@
                 <td>{{ item.cat_id }}</td>
                 <td>{{ item.amount2 }}</td>
                 <td>
-                    <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> <a
-                    href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
+                    <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> 
+                    <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
 
                 </td>                        
                 <td>
                     <input class="form-check-input current" value="{{ item.amount }}" name="{{ item.id }}" type="checkbox" id="inlineCheckbox1">
-                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}"            
-                    
+                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">                        
                 </td> 
         
             </tr>
@@ -121,29 +120,28 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
 
-
 <script type=text/javascript>   
 
     $(document).ready(function() {
     //set initial state   
-     $('.finished').hide();  
+    $('.finished').hide();  //hides 'finished' button until discrepancy = 0
+
+    let startValue = selectValues('div.startbal');
+    let endValue = selectValues('div.endbal');
 
     function selectValues (querySelector) {
+        // use to set startValue (starting balance) and endValue (ending balance)
         const returnArray = document.querySelectorAll(querySelector);   
 
         returnArray.forEach(function(element) {
-        let returnBal = currency(element.getAttribute('value'));
-        returnValue = returnBal.value;   
+            let returnBal = currency(element.getAttribute('value'));
+            returnValue = returnBal.value;   
     });
         return returnValue;
     }
 
-    let startValue = selectValues('div.startbal');
-    // console.log('startValue:', startValue);
-    let endValue = selectValues('div.endbal');
-    // console.log('endValue:', endValue);
-
     function compareBalance (startBal, reconciledChange) {
+        // computes change between starting balance and computed ending balance as transactions are clicked on
         console.log('startBal', startBal, 'reconciledCh', reconciledChange);
         let compEndBal = startBal + reconciledChange
         $('#difference').text(currency(compEndBal));
@@ -151,26 +149,27 @@
     }
 
     function discrepancyWork (compEndBal, UEndBal) {
+        // computes change between computed ending balance and user-entered ending balance as transactions are clicked on
+        //if discrepancy = 0 this function will also show finish button
         let discrepancy = currency(UEndBal).subtract(compEndBal)
-        console.log('discrepancy trying to match:', typeof(discrepancy.value));
+        console.log('discrepancy to match:', discrepancy.value);
             if (discrepancy.value === 0.00) {
-            console.log('fuck');
             $('.finished').show();        
             }
-
         $('#discrepancy').text(discrepancy);
         return discrepancy;
-    }
+        }
 
-    function reconcileChanges(sumChange, startValue, endValue) {
+    function reconcileChanges(sumChange, startValue, endValue, idArray) {
 
         if (typeof(sumChange) === "number") {
             console.log("sumChange (branch 1):", sumChange);      
             let compEndBal = compareBalance(startValue, sumChange);
             let discrepancy = discrepancyWork(compEndBal, endValue);
+             console.log('rc idarray:', idArray, '|', typeof(idArray));
             $.getJSON($SCRIPT_ROOT + '/_reconciled', {
             amount: sumChange, 
-            difference: compEndBal
+            idArray: idArray
         },  function(data) {
             $("#reconciledChanges").text(data.result);
         })                    
@@ -178,9 +177,10 @@
             console.log("sumChange value (branch object):", sumChange.value); 
             let compEndBal = compareBalance(startValue, sumChange.value);
             let discrepancy = discrepancyWork(compEndBal, endValue);
+            console.log('rc idarray:', idArray, typeof(idArray));
             $.getJSON($SCRIPT_ROOT + '/_reconciled', {
             amount: sumChange.value, 
-            difference: compEndBal
+            idArray: idArray
         },  function(data) {
             $("#reconciledChanges").text(data.result);
         })      
@@ -190,31 +190,45 @@
             console.log("sumChange (branch zero):", sumChange); 
             let compEndBal = compareBalance(startValue, sumChangee);
             let discrepancy = discrepancyWork(compEndBal, endValue);
+             console.log('rc idarray:', idArray, typeof(idArray));
             $.getJSON($SCRIPT_ROOT + '/_reconciled', {
             amount: sumChange, 
-            difference: compEndBal
+            idArray: idArray
         },  function(data) {
             $("#reconciledChanges").text(data.result);
-        })      
-          
-            } 
-    }    
+        })                
+            }  }    
+
     $('.current').change(function() {
         let sumArray = [];
+        let idArray = [];
         const reducer = (acc, currentVal) => currency(acc).add(currentVal);       
 
         if(this.checked) {
             console.log('*****branch checked');
+
             let collection = document.getElementsByClassName('current');
             //item is an HTMLcollections
 
             Array.from(collection).forEach(function (element) {
-            if (element.checked == true) {                      
-                let floatElement = currency(element.value); //currency returns an object not just a number     
+            const myFirstObj = {
+                'id': [], 
+                'amount': 0
+            };
+            if (element.checked == true) {       
+                
+                let floatElement = currency(element.value); 
+                let idElement = element.name
+
+                idArray.push(parseInt(idElement))
                 sumArray.push(floatElement.value);
+                console.log(idElement, idArray);
+
                 let sumChange = sumArray.reduce(reducer); 
-                reconcileChanges(sumChange, startValue, endValue);
-                discrepancyZero();
+                myFirstObj.id = idArray;
+                myFirstObj.amount = sumChange;
+                console.log(myFirstObj);
+                reconcileChanges(sumChange, startValue, endValue, idArray);
                 }       
             });
             
@@ -224,20 +238,30 @@
             let collection = document.getElementsByClassName('current');
 
             Array.from(collection).forEach(function (element) {
+            const myFirstObj = {
+                'id': [], 
+                'amount': 0
+            };
             if (element.checked == true) {
                 let floatElement = currency(element.value)
+                let idElement = element.name
+                
+                idArray.push(parseInt(idElement))
                 sumArray.push(floatElement.value);
+                console.log(idElement, idArray);
+                
                 let sumChange = sumArray.reduce(reducer);
-                reconcileChanges(sumChange, startValue, endValue);
+                myFirstObj.id = idArray;
+                myFirstObj.amount = sumChange;
+                console.log(myFirstObj);
+                
+                reconcileChanges(sumChange, startValue, endValue, idArray);
             }  
             
             else {
                 console.log('******branch null'); 
                 $('#reconciledChanges').text('0');
-
-            }
-
-            
+            }          
 
         });
             }

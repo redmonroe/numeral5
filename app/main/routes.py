@@ -558,17 +558,17 @@ def continue_reconcile(username, rec_id):
 @login_required
 def reconciled():
     amount_list = []
-    difference_list = []
+
+    ids = request.args
+    str_id_list = ids.getlist('idArray[]')
+    id_list = [int(item) for item in str_id_list]
 
     amount = request.args.get('amount', 0, type=str)
-    difference = request.args.get('difference', 0, type=str)    
    
     amount_list.append(float(amount))
-    difference_list.append(float(amount))
     amount = sum(amount_list)
-    difference = sum(difference_list)
-    print(amount)
-    print('difference:', difference)
+    print('reconciled amount:', amount)
+    print('id list:', id_list)
     return jsonify(result=amount)
 
 
@@ -637,20 +637,26 @@ def reports(username):
 @bp.route('/import')
 def import_thing():
 
-    filename = 'category_list_for_load_category_function.csv'
-    with open(filename, 'rt') as f:
-        username = 'joe'
-        header = next(f)
-        cats = []
-        for line in f:
-            print(line)
-            c = Categories()
-            nl = line.split(',')
-            c.name = nl[1]
-            c.inorex = nl[2].strip()
-            c.user_id = 1
-            # db.session.add(c)
-            db.session.commit()
+    txns = Transactions.query.all()
+
+    for item in txns:
+        print(item.reconciled)
+        # db.session.commit()
+
+    # filename = 'category_list_for_load_category_function.csv'
+    # with open(filename, 'rt') as f:
+    #     username = 'joe'
+    #     header = next(f)
+    #     cats = []
+    #     for line in f:
+    #         print(line)
+    #         c = Categories()
+    #         nl = line.split(',')
+    #         c.name = nl[1]
+    #         c.inorex = nl[2].strip()
+    #         c.user_id = 1
+    #         # db.session.add(c)
+    #         db.session.commit()
     return redirect(url_for('main.index'))
 
 

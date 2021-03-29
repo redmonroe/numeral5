@@ -12,11 +12,65 @@
 <body>
     <h1>register, user id = {{ id }}, starting balance = {{ startbal.startbal }}, last page = {{ lastpage }}</h1>
        <a href="{{ url_for('main.create_transaction', username=current_user.username, lastpage=lastpage) }}">create transactions</a>
-      {% for item in items %}
+      <!-- {% for item in items %}
       <p>{{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
           
         {% endfor %}
-        <p>current balance: {{ curbal }}</p>
+        <p>current balance: {{ curbal }}</p> -->
+
+
+    <table class="table table-striped" id="table" data-toggle="table" data-height="460">
+        <thead class='thead-dark'>
+            <tr>
+                <th data-field="date" data-sortable="true" scope="col">
+                    <h4>date</h4>
+                </th>
+                <th data-field="payee" data-sortable="true">
+                    <h4>payee</h4>
+                </th>
+                <th data-field="amount" data-sortable="true">
+                    <h4>amount</h4>
+                </th>
+                <th data-field="txn type" data-sortable="true" scope="col">
+                    <h4>txn type</h4>
+                </th>
+                <th data-field="category id" data-sortable="true" scope="col">
+                    <h4>cat id</h4>
+                </th>
+                <th data-field="amount2" data-sortable="true" scope="col">
+                    <h4>amount2</h4>
+                </th>
+                <th data-field="actions" data-sortable="true" scope="col">
+                    <h4>actions</h4>
+                </th>
+                <th data-field="reconciled" data-sortable="true" scope="col">
+                    <h4>reconcile?</h4>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.date }}</td>
+                <td>{{ item.payee_name }}</td>
+                <td>{{ item.amount }}</td>
+                <td>{{ item.type }}</td>
+                <td>{{ item.cat_id }}</td>
+                <td>{{ item.amount2 }}</td>
+                <td>
+                    <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> <a
+                        href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
+        
+                </td>
+                <td>
+                    {{ item.reconciled }}
+
+                </td>
+        
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
       <nav aria-label="...">
           <ul class="pager">
