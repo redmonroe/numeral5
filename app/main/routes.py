@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+import json
 from flask import render_template, flash, redirect, url_for, request, g, \
     jsonify, current_app
 from flask_login import current_user, login_required
@@ -482,7 +483,7 @@ def reconcile(username, acct_id):
 
     transactions_and_transfers_native = Transactions.acct_id == acct_id
 
-    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id)
+    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
 
     reconciliation_dates = and_(Transactions.date >= most_recent_reconciliation.start_date, Transactions.date <= most_recent_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
 
@@ -506,9 +507,7 @@ def reconcile(username, acct_id):
     # prev_url = url_for('main.reconcile', username=username, id=id,
     #                    page=results.prev_num) if results.has_prev else None
 
-
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal)
-
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, rec_id=most_recent_reconciliation.id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
@@ -526,7 +525,8 @@ def continue_reconcile(username, rec_id):
     acct_id = mr_reconciliation.acct_id
     transactions_and_transfers_native = Transactions.acct_id == acct_id
 
-    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id)
+    transfers_foreign = and_(Transactions.type == 'transfer',
+                             Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
 
     reconciliation_dates = and_(Transactions.date >= mr_reconciliation.start_date, Transactions.date <= mr_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
 
@@ -553,7 +553,6 @@ def continue_reconcile(username, rec_id):
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url, prior_end_bal=prior_end_bal)
 
-
 @bp.route('/_reconciled')
 @login_required
 def reconciled():
@@ -564,22 +563,86 @@ def reconciled():
     id_list = [int(item) for item in str_id_list]
 
 
-    for idd in id_list:
-        txn = Transactions.query.get(idd)
-        txn.reconciled = True
-        print(txn)
+    id_str_for_db = json.dumps(id_list)
+    print('json dumps:', id_str_for_db, type(id_str_for_db))
 
+    #implement button click change
+    # on button click print SEND TOO
+
+    # for idd in id_list:
+    #     txn = Transactions.query.get(idd)
+    #     txn.reconciled = True
+    #     db.session.commit()
+    #     print(txn)
+
+
+    # txns = Transactions.query.all()
+    # for txn in txns:
+    #     print(txn)
+    #     txn.reconciled = False
+    #     db.session.commit()
 
 
 
     amount = request.args.get('amount', 0, type=str)
+    message =request.args.get('message', 0, type=str)
    
     amount_list.append(float(amount))
     amount = sum(amount_list)
     print('reconciled amount:', amount)
     print('id list:', id_list)
+    print('message:', message)
     return jsonify(result=amount)
 
+@bp.route('/_reconciled_button')
+@login_required
+def reconciled_button():
+    print('RECONCILED BUTTON')
+    amount_list = []
+
+    amount = request.args.get('amount', 0, type=str)
+
+    ids = request.args
+    str_id_list = ids.getlist('idArray[]')
+    id_list = [int(item) for item in str_id_list]
+
+    id_str_for_db = json.dumps(id_list)
+    print('json dumps:', id_str_for_db, type(id_str_for_db))
+
+    message = request.args.get('message', 0, type=str)
+    reconciliation_id = request.args.get('recId', 0, type=str)
+
+    for idd in id_list:
+        txn = Transactions.query.get(idd)
+        txn.reconciled = True #should be True in production
+
+        db.session.commit()
+        print(txn)
+
+    current_reconciliation = Reconciliation.query.get(reconciliation_id)
+
+    current_reconciliation.finalized = True
+    current_reconciliation.txnjsn = id_str_for_db
+    db.session.commit()
+
+    
+
+    # txns = Transactions.query.all()
+    # for txn in txns:
+    #     print(txn)
+    #     txn.reconciled = False
+    #     db.session.commit()
+
+
+    amount_list.append(float(amount))
+    amount = sum(amount_list)
+    print('rec id:', reconciliation_id)
+    print('reconciled amount:', amount)
+    print('id list:', id_list)
+    print('message:', message)
+    return jsonify(result=amount)
+
+# action = "/forward/"
 
 @bp.route('/index/<username>/popup', methods=['GET', 'POST'])
 @login_required

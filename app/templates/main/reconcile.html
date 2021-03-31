@@ -21,6 +21,7 @@
     <h1>reconcile</h1>
     <button type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button">finished</button>
     </div>
+    <div class=recId value="{{ rec_id }}"></div>
 
 
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
@@ -47,6 +48,9 @@
                 <th data-field="actions" data-sortable="true" scope="col">
                     <h4>actions</h4>
                 </th>
+                <th data-field="reconciled?" data-sortable="true" scope="col">
+                    <h4>reconciled?</h4>
+                </th>
                 <th data-field="reconcile?" data-sortable="true" scope="col">
                     <h4>reconcile?</h4>
                 </th>
@@ -70,6 +74,7 @@
                     <input class="form-check-input current" value="{{ item.amount }}" name="{{ item.id }}" type="checkbox" id="inlineCheckbox1">
                     <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">                        
                 </td> 
+                <td>{{ item.reconciled }}</td>
         
             </tr>
             {% endfor %}
@@ -128,6 +133,7 @@
 
     let startValue = selectValues('div.startbal');
     let endValue = selectValues('div.endbal');
+    let recId = selectValues('div.recId')
 
     function selectValues (querySelector) {
         // use to set startValue (starting balance) and endValue (ending balance)
@@ -154,26 +160,47 @@
         let discrepancy = currency(UEndBal).subtract(compEndBal)
         console.log('discrepancy to match:', discrepancy.value);
             if (discrepancy.value === 0.00) {
-            $('.finished').show();        
+            $('.finished').show();      
             }
         $('#discrepancy').text(discrepancy);
         return discrepancy;
         }
+    
+    function changeHelper(sumChange, startValue, endValue, idArray, flag=null) {
 
-    function reconcileChanges(sumChange, startValue, endValue, idArray) {
-
-        if (typeof(sumChange) === "number") {
+        if (flag === 1){
             console.log("sumChange (branch 1):", sumChange);      
             let compEndBal = compareBalance(startValue, sumChange);
             let discrepancy = discrepancyWork(compEndBal, endValue);
-             console.log('rc idarray:', idArray, '|', typeof(idArray));
+            console.log('rc idarray:', idArray, '|', typeof(idArray));
             $.getJSON($SCRIPT_ROOT + '/_reconciled', {
             amount: sumChange, 
-            idArray: idArray
+            idArray: idArray, 
+            recId: recId, 
         },  function(data) {
             $("#reconciledChanges").text(data.result);
-        })                    
-        } else if (typeof(sumChange) === 'object') {
+            $('.finished').on('click', function() {
+                let message = 'asswipe'
+                // let recId = $('.recId')
+                $.getJSON($SCRIPT_ROOT + '/_reconciled_button', {
+            amount: sumChange, 
+            idArray: idArray, 
+            message: message,
+            recId: recId, 
+        })
+            
+            
+            }) 
+
+
+
+
+
+         
+        }      )
+
+
+        } else if (flag === 2) {
             console.log("sumChange value (branch object):", sumChange.value); 
             let compEndBal = compareBalance(startValue, sumChange.value);
             let discrepancy = discrepancyWork(compEndBal, endValue);
@@ -184,8 +211,7 @@
         },  function(data) {
             $("#reconciledChanges").text(data.result);
         })      
-        }            
-        else {
+        } else {
             let sumChange = 0;
             console.log("sumChange (branch zero):", sumChange); 
             let compEndBal = compareBalance(startValue, sumChangee);
@@ -196,25 +222,37 @@
             idArray: idArray
         },  function(data) {
             $("#reconciledChanges").text(data.result);
-        })                
+        }) 
+    }}
+    
+
+    function reconcileChanges(sumChange, startValue, endValue, idArray) {
+
+        if (typeof(sumChange) === "number") {
+            changeHelper(sumChange, startValue, endValue, idArray, flag=1);
+              
+        } else if (typeof(sumChange) === 'object') {
+            changeHelper(sumChange, startValue, endValue, idArray, flag=2)
+        }            
+        else {
+            changeHelper(sumChange, startValue, endValue, idArray,)
+                  
             }  }    
 
-    $('.current').change(function() {
-        let sumArray = [];
-        let idArray = [];
-        const reducer = (acc, currentVal) => currency(acc).add(currentVal);       
+
+    //following handles events from checkboxes, this starts the events
+    $('.current').change(function() {         
 
         if(this.checked) {
             console.log('*****branch checked');
+            let sumArray = [];
+            let idArray = [];
+            const reducer = (acc, currentVal) => currency(acc).add(currentVal);     
 
             let collection = document.getElementsByClassName('current');
             //item is an HTMLcollections
 
             Array.from(collection).forEach(function (element) {
-            const myFirstObj = {
-                'id': [], 
-                'amount': 0
-            };
             if (element.checked == true) {       
                 
                 let floatElement = currency(element.value); 
@@ -225,23 +263,19 @@
                 console.log(idElement, idArray);
 
                 let sumChange = sumArray.reduce(reducer); 
-                myFirstObj.id = idArray;
-                myFirstObj.amount = sumChange;
-                console.log(myFirstObj);
                 reconcileChanges(sumChange, startValue, endValue, idArray);
                 }       
             });
             
         } else if (!this.checked) {   
-            console.log('******branch unchecked');   
+            console.log('******branch unchecked'); 
+            let sumArray = [];
+            let idArray = [];
+            const reducer = (acc, currentVal) => currency(acc).add(currentVal);    
      
             let collection = document.getElementsByClassName('current');
 
             Array.from(collection).forEach(function (element) {
-            const myFirstObj = {
-                'id': [], 
-                'amount': 0
-            };
             if (element.checked == true) {
                 let floatElement = currency(element.value)
                 let idElement = element.name
@@ -250,11 +284,7 @@
                 sumArray.push(floatElement.value);
                 console.log(idElement, idArray);
                 
-                let sumChange = sumArray.reduce(reducer);
-                myFirstObj.id = idArray;
-                myFirstObj.amount = sumChange;
-                console.log(myFirstObj);
-                
+                let sumChange = sumArray.reduce(reducer)                
                 reconcileChanges(sumChange, startValue, endValue, idArray);
             }  
             
@@ -267,6 +297,7 @@
             }
         });
     }); 
+    
 </script>
 {% endblock %}
     

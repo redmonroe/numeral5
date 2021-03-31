@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+
+<!-- <html>
+<form>
+    <input class="btn btn-primary" type="button" value="Input" onclick="goPython()">       
+</form> -->
+
+<!DOCTYPE html>
+<html>
+  <head>    
+  </head>
+  <body>
+    <input type="button" id='script' name="scriptbutton" value=" Run Script " onclick="goPython()">
+
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <script>
+        function goPython(){
+            $.ajax({
+              url: "background_process_test",
+             context: document.body
+            }).done(function() {
+             alert('finished python script');;
+            });
+        }
+    </script>
+  </body>
+</html>
+
+
+<!-- //button
+<div class='container'>
+<h3>Test</h3>
+        <a href=# id=test><button class='btn btn-default'>Test</button></a>
+
+</div> -->
+
+
+</html>
+{% endblock %}
