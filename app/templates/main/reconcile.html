@@ -228,10 +228,11 @@
                   
             }  }    
 
-
     $(document).ready(function() {
     //set initial state   
-    $('.finished').hide();  //hides 'finished' button until discrepancy = 0   
+    $('.finished').hide();  //hides 'finished' button until discrepancy = 0 
+
+    //gathers values from html
     let startValue = selectValues('div.startbal');
     let endValue = selectValues('div.endbal');
     let recId = selectValues('div.recId');
@@ -242,12 +243,29 @@
     let discrepancy = discrepancyWork(compEndBal, endValue);
     $('#discrepancy').text(discrepancy);
 
+    //starting values for checkboxes
+    let checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
+ 
+    let $checkboxes = $("#checkbox-container :checkbox");
+    console.log('starting checkboxValues, $checkboxes:', checkboxValues, $checkboxes);
+
+    //load persisted checkboxes
+    $.each(checkboxValues, function(key, value) {
+    $("#" + key).prop('checked', value);
+        });
+
     //following handles events from checkboxes, this starts the events
     $('.current').change(function() {         
-        console.log("The checkbox with the ID '" + this.id + "' changed");
+        console.log("The checkbox with the ID '" + this.id + "' changed" + this.checked);
+       
 
         if(this.checked) {
             console.log('*****branch checked');
+
+            checkboxValues[this.id] = this.checked;
+            console.log(checkboxValues);
+            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues)); 
+
             
             let sumArray = [];
             let idArray = [];
@@ -264,7 +282,7 @@
 
                 idArray.push(parseInt(idElement))
                 sumArray.push(floatElement.value);
-                console.log(idElement, idArray);
+                // console.log(idElement, idArray);
 
                 let sumChange = sumArray.reduce(reducer); 
                 reconcileChanges(sumChange, startValue, endValue, idArray, recId);
@@ -273,6 +291,12 @@
             
         } else if (!this.checked) {   
             console.log('******branch unchecked'); 
+
+            checkboxValues[this.id] = false;
+            console.log(checkboxValues);
+            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+
+
             let sumArray = [];
             let idArray = [];
             const reducer = (acc, currentVal) => currency(acc).add(currentVal);    
@@ -306,8 +330,7 @@
     }); 
 
 
- // var checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {},
-    // $checkboxes = $("#checkbox-container :checkbox");
+
 
     // $checkboxes.on("change", function(){
     // $checkboxes.each(function(){
