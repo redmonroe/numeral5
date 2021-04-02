@@ -187,19 +187,10 @@
             idArray: idArray, 
             message: message,
             recId: recId, 
+        })       
+            
+            })          
         })
-            
-            
-            }) 
-
-
-
-
-
-         
-        }      )
-
-
         } else if (flag === 2) {
             console.log("sumChange value (branch object):", sumChange.value); 
             let compEndBal = compareBalance(startValue, sumChange.value);
@@ -223,8 +214,7 @@
         },  function(data) {
             $("#reconciledChanges").text(data.result);
         }) 
-    }}
-    
+    }}    
 
     function reconcileChanges(sumChange, startValue, endValue, idArray) {
 

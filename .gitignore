@@ -89,3 +89,6 @@ n5/Scripts/pywin32_postinstall.py
 n5/Scripts/pywin32_testall.py
 n5/share/jupyter/kernels/python3/logo-32x32.png
 n5/share/jupyter/kernels/python3/logo-64x64.png
+html_scrap.txt
+node_modules/currency.js/changelog.md
+.gitignore

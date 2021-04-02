@@ -545,13 +545,15 @@ def continue_reconcile(username, rec_id):
     prior_end_bal = mr_reconciliation.statement_end_bal
    
     
-    next_url = url_for('main.reconcile', username=username, id=id,
-                       page=results.next_num) if results.has_next else None
-    prev_url = url_for('main.reconcile', username=username, id=id,
-                       page=results.prev_num) if results.has_prev else None
+    # next_url = url_for('main.reconcile', username=username, id=id,
+    #                    page=results.next_num) if results.has_next else None
+    # prev_url = url_for('main.reconcile', username=username, id=id,
+    #                    page=results.prev_num) if results.has_prev else None
 
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, next_url=next_url, prev_url=prev_url, prior_end_bal=prior_end_bal)
+    # return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, prior_end_bal=prior_end_bal)
+
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, rec_id=rec_id)
 
 @bp.route('/_reconciled')
 @login_required
