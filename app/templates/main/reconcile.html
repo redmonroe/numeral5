@@ -130,29 +130,22 @@
 
 {% block javascript %}
 
-<script type=text/javascript>   
+<script type=text/javascript>  
 
-    $(document).ready(function() {
-    //set initial state   
-    $('.finished').hide();  //hides 'finished' button until discrepancy = 0    
-
-    let startValue = selectValues('div.startbal');
-    let endValue = selectValues('div.endbal');
-    let recId = selectValues('div.recId')
 
     function selectValues (querySelector) {
-        // use to set startValue (starting balance) and endValue (ending balance)
+    // use to set startValue (starting balance) and endValue (ending balance)
         const returnArray = document.querySelectorAll(querySelector);   
 
         returnArray.forEach(function(element) {
             let returnBal = currency(element.getAttribute('value'));
             returnValue = returnBal.value;   
-    });
+            });
         return returnValue;
     }
 
     function compareBalance (startBal, reconciledChange) {
-        // computes change between starting balance and computed ending balance as transactions are clicked on
+    // computes change between starting balance and computed ending balance as transactions are clicked on
         console.log('startBal', startBal, 'reconciledCh', reconciledChange);
         let compEndBal = startBal + reconciledChange
         $('#difference').text(currency(compEndBal));
@@ -170,8 +163,8 @@
         $('#discrepancy').text(discrepancy);
         return discrepancy;
         }
-    
-    function changeHelper(sumChange, startValue, endValue, idArray, flag=null) {
+
+    function changeHelper(sumChange, startValue, endValue, idArray, recId, flag=null) {
 
         if (flag === 1){
             console.log("sumChange (branch 1):", sumChange);      
@@ -222,44 +215,36 @@
         }) 
     }}    
 
-    function reconcileChanges(sumChange, startValue, endValue, idArray) {
+    function reconcileChanges(sumChange, startValue, endValue, idArray, recId) {
 
         if (typeof(sumChange) === "number") {
-            changeHelper(sumChange, startValue, endValue, idArray, flag=1);
+            changeHelper(sumChange, startValue, endValue, idArray, recId, flag=1);
               
         } else if (typeof(sumChange) === 'object') {
-            changeHelper(sumChange, startValue, endValue, idArray, flag=2)
+            changeHelper(sumChange, startValue, endValue, idArray, recId, flag=2)
         }            
         else {
-            changeHelper(sumChange, startValue, endValue, idArray,)
+            changeHelper(sumChange, startValue, endValue, idArray, recId)
                   
             }  }    
 
 
-    var checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {},
-    $checkboxes = $("#checkbox-container :checkbox");
+    $(document).ready(function() {
+    //set initial state   
+    $('.finished').hide();  //hides 'finished' button until discrepancy = 0   
+    let startValue = selectValues('div.startbal');
+    let endValue = selectValues('div.endbal');
+    let recId = selectValues('div.recId');
 
-    $checkboxes.on("change", function(){
-    $checkboxes.each(function(){
-        checkboxValues[this.id] = this.checked;
-    });
-    
-    localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-    });
-
-    // On page load
-    $.each(checkboxValues, function(key, value) {
-        console.log('cv', checkboxValues);
-    $("#" + key).prop('checked', value);
-    });
-
- 
-
+    //set starting values for user-readable boxes
+    $('#reconciledChanges').text('0');
+    let compEndBal = compareBalance(startValue, 0)
+    let discrepancy = discrepancyWork(compEndBal, endValue);
+    $('#discrepancy').text(discrepancy);
 
     //following handles events from checkboxes, this starts the events
     $('.current').change(function() {         
         console.log("The checkbox with the ID '" + this.id + "' changed");
-
 
         if(this.checked) {
             console.log('*****branch checked');
@@ -282,7 +267,7 @@
                 console.log(idElement, idArray);
 
                 let sumChange = sumArray.reduce(reducer); 
-                reconcileChanges(sumChange, startValue, endValue, idArray);
+                reconcileChanges(sumChange, startValue, endValue, idArray, recId);
                 }       
             });
             
@@ -304,18 +289,39 @@
                 console.log(idElement, idArray);
                 
                 let sumChange = sumArray.reduce(reducer)                
-                reconcileChanges(sumChange, startValue, endValue, idArray);
+                reconcileChanges(sumChange, startValue, endValue, idArray, recId);
             }  
             
             else {
                 console.log('******branch null'); 
                 $('#reconciledChanges').text('0');
+                let compEndBal = compareBalance(startValue, 0)
+                let discrepancy = discrepancyWork(compEndBal, endValue);
+                $('#discrepancy').text(discrepancy);
             }          
 
         });
             }
         });
     }); 
+
+
+ // var checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {},
+    // $checkboxes = $("#checkbox-container :checkbox");
+
+    // $checkboxes.on("change", function(){
+    // $checkboxes.each(function(){
+    //     checkboxValues[this.id] = this.checked;
+    // });
+    
+    // localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+    // });
+
+    // // On page load
+    // $.each(checkboxValues, function(key, value) {
+    //     console.log('cv', checkboxValues);
+    // $("#" + key).prop('checked', value);
+    // });
     
 </script>
 {% endblock %}
