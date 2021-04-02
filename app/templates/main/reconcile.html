@@ -249,6 +249,7 @@
 
     // On page load
     $.each(checkboxValues, function(key, value) {
+        console.log('cv', checkboxValues);
     $("#" + key).prop('checked', value);
     });
 
