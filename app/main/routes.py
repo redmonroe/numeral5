@@ -500,14 +500,8 @@ def reconcile(username, acct_id):
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
     prior_end_bal = most_recent_reconciliation.statement_end_bal
-   
-    
-    # next_url = url_for('main.reconcile', username=username, id=id,
-    #                    page=results.next_num) if results.has_next else None
-    # prev_url = url_for('main.reconcile', username=username, id=id,
-    #                    page=results.prev_num) if results.has_prev else None
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, rec_id=most_recent_reconciliation.id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=most_recent_reconciliation.id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
@@ -543,17 +537,8 @@ def continue_reconcile(username, rec_id):
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
     prior_end_bal = mr_reconciliation.statement_end_bal
-   
-    
-    # next_url = url_for('main.reconcile', username=username, id=id,
-    #                    page=results.next_num) if results.has_next else None
-    # prev_url = url_for('main.reconcile', username=username, id=id,
-    #                    page=results.prev_num) if results.has_prev else None
 
-
-    # return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal, prior_end_bal=prior_end_bal)
-
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/_reconciled')
 @login_required
@@ -642,7 +627,9 @@ def reconciled_button():
     print('reconciled amount:', amount)
     print('id list:', id_list)
     print('message:', message)
-    return jsonify(result=amount)
+    data = {"this": "is", "just": "a test"}
+    # return jsonify(result=amount)
+    return data
 
 # action = "/forward/"
 

@@ -13,15 +13,20 @@
       div {text-align: left;}
     </style>
     <title>reconcile</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
 
 </head>
 
 <body>
     <div class=startbal value="{{ startbal.startbal }}">
-    <h1>reconcile</h1>
-    <button type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button">finished</button>
-    </div>
     <div class=recId value="{{ rec_id }}"></div>
+    <div class=acctId value="{{ acct_id }}"></div>
+    <div class=userName value="{{ username }}"></div>
+    <h1>reconcile</h1>
+    <a type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button" href="{{ url_for('main.accounts', username=current_user.username) }}">finished</a>
+    </div>
 
 
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
@@ -71,8 +76,10 @@
 
                 </td>                        
                 <td>
-                    <input class="form-check-input current" value="{{ item.amount }}" name="{{ item.id }}" type="checkbox" id="inlineCheckbox1">
-                    <label class="form-check-label" for="inlineCheckbox1" data-amount="{{ item.amount }}" name="{{ item.id }}">                        
+                    <div id="checkbox-container">                                                   
+                        <label class="form-check-label" for="option{{ item.id }}" data-amount="{{ item.amount }}" name="{{ item.id }}">                        
+                        <input class="form-check-input current" value="{{ item.amount }}"    name="{{ item.id }}" type="checkbox" id="option{{ item.id }}">
+                    </div>
                 </td> 
                 <td>{{ item.reconciled }}</td>
         
@@ -122,14 +129,12 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
 
 {% block javascript %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
 
 <script type=text/javascript>   
 
     $(document).ready(function() {
     //set initial state   
-    $('.finished').hide();  //hides 'finished' button until discrepancy = 0
+    $('.finished').hide();  //hides 'finished' button until discrepancy = 0    
 
     let startValue = selectValues('div.startbal');
     let endValue = selectValues('div.endbal');
@@ -188,6 +193,7 @@
             message: message,
             recId: recId, 
         })       
+            console.log(data);
             
             })          
         })
@@ -230,11 +236,33 @@
             }  }    
 
 
+    var checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {},
+    $checkboxes = $("#checkbox-container :checkbox");
+
+    $checkboxes.on("change", function(){
+    $checkboxes.each(function(){
+        checkboxValues[this.id] = this.checked;
+    });
+    
+    localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+    });
+
+    // On page load
+    $.each(checkboxValues, function(key, value) {
+    $("#" + key).prop('checked', value);
+    });
+
+ 
+
+
     //following handles events from checkboxes, this starts the events
     $('.current').change(function() {         
+        console.log("The checkbox with the ID '" + this.id + "' changed");
+
 
         if(this.checked) {
             console.log('*****branch checked');
+            
             let sumArray = [];
             let idArray = [];
             const reducer = (acc, currentVal) => currency(acc).add(currentVal);     
