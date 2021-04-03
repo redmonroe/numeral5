@@ -156,6 +156,7 @@ class Reconciliation(db.Model):
     acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     finalized = db.Column(db.Boolean)
     txnjsn = db.Column(db.String)
+    checkboxjsn = db.Column(db.String)
 
 class Reports(object):
     @staticmethod

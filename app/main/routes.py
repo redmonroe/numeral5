@@ -253,6 +253,7 @@ def create_transaction(username, id=None, lastpage=None):
         new_transaction.amount = form.amount.data
         new_transaction.payee_name = form.payee_name.data
         new_transaction.acct_id = form.acct_id.data
+        new_transaction.reconciled = False
         if new_transaction.type == 'transfer':
             new_transaction.acct_id2 = form.acct_id2.data
         else:
@@ -467,9 +468,6 @@ def adjust_reconciliation(username, rec_id):
 @bp.route('/reconcile/<username>/<acct_id>', methods=['GET', 'POST'])
 @login_required
 def reconcile(username, acct_id):
-        #ingredients
-        # transactions by account
-        # between start and end dates
 
     most_recent_reconciliation = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
 
@@ -495,7 +493,7 @@ def reconcile(username, acct_id):
 
     results = Transactions.query.filter(reconciliation_dates)
 
-    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE_REC'], False)
         
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
@@ -532,7 +530,7 @@ def continue_reconcile(username, rec_id):
 
     results = Transactions.query.filter(reconciliation_dates)
 
-    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE_REC'], False)
         
     curbal, startbal = Transactions.get_current_balance(acct_id)
 
@@ -572,13 +570,13 @@ def reconciled():
 
 
     amount = request.args.get('amount', 0, type=str)
-    message =request.args.get('message', 0, type=str)
+
    
     amount_list.append(float(amount))
     amount = sum(amount_list)
     print('reconciled amount:', amount)
     print('id list:', id_list)
-    print('message:', message)
+    
     return jsonify(result=amount)
 
 @bp.route('/_reconciled_button')
@@ -610,7 +608,37 @@ def reconciled_button():
 
     current_reconciliation.finalized = True
     current_reconciliation.txnjsn = id_str_for_db
+    print('cur txn:', current_reconciliation.txnjsn)
     db.session.commit()
+    return jsonify(result=0)
+
+
+@bp.route('/_persist_checkboxes')
+@login_required
+def persist_checkboxes():
+    print('persist checkboxes')
+    checkbox_values = request.args
+    print(checkbox_values)
+    checkbox_str_for_db = json.dumps(checkbox_values)
+    print('json dumps CHECKBOXES:', checkbox_str_for_db, type(checkbox_str_for_db))
+
+    reconciliation_id = request.args.get('recId', 0, type=str)
+
+    current_reconciliation = Reconciliation.query.get(reconciliation_id)
+
+    current_reconciliation.checkboxjsn = checkbox_str_for_db
+    db.session.commit()
+    # str_checkbox_list = checkbox_values.getlist('checkboxObject{}')
+    # print(str_checkbox_list)
+    # checkbox_list = [int(item) for item in str_checkbox_list]
+
+
+    # checkbox_values = request.args
+    # str_id_list = ids.getlist('idArray[]')
+    # id_list = [int(item) for item in str_id_list]
+
+    # id_str_for_db = json.dumps(id_list)
+    # print('json dumps:', id_str_for_db, type(id_str_for_db))
 
     
 
@@ -621,15 +649,15 @@ def reconciled_button():
     #     db.session.commit()
 
 
-    amount_list.append(float(amount))
-    amount = sum(amount_list)
-    print('rec id:', reconciliation_id)
-    print('reconciled amount:', amount)
-    print('id list:', id_list)
-    print('message:', message)
-    data = {"this": "is", "just": "a test"}
+    # amount_list.append(float(amount))
+    # amount = sum(amount_list)
+    # print('rec id:', reconciliation_id)
+    # print('reconciled amount:', amount)
+    # print('id list:', id_list)
+    # print('message:', message)
+    # data = {"this": "is", "just": "a test"}
     # return jsonify(result=amount)
-    return data
+    return jsonify(result=0)
 
 # action = "/forward/"
 

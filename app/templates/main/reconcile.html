@@ -178,12 +178,11 @@
         },  function(data) {
             $("#reconciledChanges").text(data.result);
             $('.finished').on('click', function() {
-                let message = 'asswipe'
+            
                 // let recId = $('.recId')
-                $.getJSON($SCRIPT_ROOT + '/_reconciled_button', {
+            $.getJSON($SCRIPT_ROOT + '/_reconciled_button', {
             amount: sumChange, 
             idArray: idArray, 
-            message: message,
             recId: recId, 
         })       
             console.log(data);
@@ -264,7 +263,16 @@
 
             checkboxValues[this.id] = this.checked;
             console.log(checkboxValues);
-            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues)); 
+            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+
+            checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
+           
+            $.getJSON($SCRIPT_ROOT + '/_persist_checkboxes', {
+            checkboxObject: checkboxValues,
+            recId: recId,  
+        },  function(data) {
+            
+        })  
 
             
             let sumArray = [];
