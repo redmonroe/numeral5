@@ -157,6 +157,7 @@ class Reconciliation(db.Model):
     finalized = db.Column(db.Boolean)
     txnjsn = db.Column(db.String)
     checkboxjsn = db.Column(db.String)
+    is_first = db.Column(db.Boolean)
 
 class Reports(object):
     @staticmethod
