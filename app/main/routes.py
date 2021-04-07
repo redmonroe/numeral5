@@ -449,8 +449,6 @@ def start_reconciliation(username, acct_id):
         db.session.commit()
         db.session.close()
         flash('congratulations, you started reconciling . . .')
-        return 'hello'
-    # return 'hello ok'
         return redirect(url_for('main.reconcile', username=username, acct_id=acct_id))
     return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=acct_id)
 
