@@ -160,34 +160,64 @@ class Reconciliation(db.Model):
     checkboxjsn = db.Column(db.String)
     is_first = db.Column(db.Boolean)
 
-    def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None):
+    def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None, style=None):
 
-        user = User.query.filter_by(username=username).first()
+        if style == 'continue':
+    
+            acct_id = target_rec.acct_id
+            transactions_and_transfers_native = Transactions.acct_id == acct_id
 
-        # building the query
-        transactions_and_transfers_native = Transactions.acct_id == acct_id
+            transfers_foreign = and_(Transactions.type == 'transfer',
+                                    Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
 
-        transfers_foreign = and_(Transactions.type == 'transfer',
-                                 Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
+            # start & end dates come from query for most recent reconciliation
+            reconciliation_dates = and_(
+                Transactions.date >= target_rec.start_date, Transactions.date <= target_rec.end_date)
 
-        reconciliation_dates = and_(Transactions.date >= target_rec.start_date, Transactions.date <=
-                                    target_rec.end_date)  # start & end dates come from query for most recent reconciliation
+            filter_args = [transactions_and_transfers_native, transfers_foreign]
 
-        filter_args = [transactions_and_transfers_native, transfers_foreign]
+            or_filter = or_(*filter_args)
 
-        or_filter = or_(*filter_args)
+            results = Transactions.query.filter(or_filter)
 
-        results = Transactions.query.filter(or_filter)
-        results = Transactions.query.filter(reconciliation_dates)
-        results = results.order_by(Transactions.date.asc()).paginate(
-            page, current_app.config['ITEMS_PER_PAGE_REC'], False)
+            results = Transactions.query.filter(reconciliation_dates)
 
-        # get starting and current balances
-        curbal, startbal = Transactions.get_current_balance(acct_id)
-        prior_end_bal = target_rec.statement_end_bal
+            results = results.order_by(Transactions.date.asc()).paginate(
+                page, current_app.config['ITEMS_PER_PAGE_REC'], False)
 
-        rec_id = target_rec.id
-        return username, results, startbal, curbal, prior_end_bal, rec_id
+            curbal, startbal = Transactions.get_current_balance(acct_id)
+
+            prior_end_bal = target_rec.statement_end_bal
+            rec_id = target_rec.id
+
+        else:
+            user = User.query.filter_by(username=username).first()
+
+            # building the query
+            transactions_and_transfers_native = Transactions.acct_id == acct_id
+
+            transfers_foreign = and_(Transactions.type == 'transfer',
+                                    Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
+
+            reconciliation_dates = and_(Transactions.date >= target_rec.start_date, Transactions.date <=
+                                        target_rec.end_date)  # start & end dates come from query for most recent reconciliation
+
+            filter_args = [transactions_and_transfers_native, transfers_foreign]
+
+            or_filter = or_(*filter_args)
+
+            results = Transactions.query.filter(or_filter)
+            results = Transactions.query.filter(reconciliation_dates)
+            results = results.order_by(Transactions.date.asc()).paginate(
+                page, current_app.config['ITEMS_PER_PAGE_REC'], False)
+
+            # get starting and current balances
+            curbal, startbal = Transactions.get_current_balance(acct_id)
+            prior_end_bal = target_rec.statement_end_bal
+            rec_id = target_rec.id
+
+        
+        return username, results, startbal, curbal, prior_end_bal, rec_id, acct_id
 
 class Reports(object):
     @staticmethod

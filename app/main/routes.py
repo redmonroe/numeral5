@@ -427,22 +427,31 @@ def start_reconciliation(username, acct_id):
 
     print(result.finalized)
 
-    # if result == None: #this branch is for first reconciliation in the account
-    #     form = ReconciliationForm(prior_ending_balance=account.startbal)
-    #     # if no previous reconciliation then use startbal
-    #     account = Accounts.query.get(acct_id)
-    # elif result.finalized == None: # this branch is for if last reconciliation is still open
-    #     # form = ReconciliationForm(prior_ending_balance=account.startbal)
-    #     return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
-    #     # should send us to continue
-    #     pass
-    # else:
-    #     #add one day to last end date
-    #     legacy_end_date = result.end_date
-    #     adjusted_start_date = legacy_end_date + timedelta(1)
-    #     form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+    if result == None: #this branch is for first reconciliation in the account
+        # if no previous reconciliation then use Account.startbal
+        account = Accounts.query.get(acct_id)
+        form = ReconciliationForm(prior_ending_balance=account.startbal)
+    elif result.finalized == None: # this branch is for if continuing last reconciliation if 
+        target_rec = Reconciliation.query.get(result.id)  # picks up with selected rec_id
 
-    form = ReconciliationForm()
+        user = User.query.filter_by(username=username).first()
+
+        page = request.args.get('page', 1, type=int)
+
+        rec = Reconciliation()
+
+        username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(
+            target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
+
+        return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+
+    else:
+        #add one day to last end date
+        legacy_end_date = result.end_date
+        adjusted_start_date = legacy_end_date + timedelta(1)
+        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+
+
     if form.validate_on_submit():
         new_reconciliation = Reconciliation()
         new_reconciliation.create_date = datetime.utcnow()
@@ -493,7 +502,7 @@ def reconcile(username, acct_id):
 
     rec = Reconciliation()
 
-    username, results, startbal, curbal, prior_end_bal, rec_id = rec.reconciliation_wrapper(target_rec=target_rec, 
+    username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
         username=username, acct_id=acct_id, page=page)
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
@@ -501,35 +510,16 @@ def reconcile(username, acct_id):
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
 def continue_reconcile(username, rec_id):
-    mr_reconciliation = Reconciliation.query.get(rec_id)
+    print(f'continue reconciliation {rec_id}')
+    target_rec = Reconciliation.query.get(rec_id) #picks up with selected rec_id
     
     user = User.query.filter_by(username=username).first()
 
     page = request.args.get('page', 1, type=int)
 
-    ## this can be reduced along with searches in 
+    rec = Reconciliation()
 
-    acct_id = mr_reconciliation.acct_id
-    transactions_and_transfers_native = Transactions.acct_id == acct_id
-
-    transfers_foreign = and_(Transactions.type == 'transfer',
-                             Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
-
-    reconciliation_dates = and_(Transactions.date >= mr_reconciliation.start_date, Transactions.date <= mr_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
-
-    filter_args = [transactions_and_transfers_native, transfers_foreign]
-
-    or_filter = or_(*filter_args)
-
-    results = Transactions.query.filter(or_filter) 
-
-    results = Transactions.query.filter(reconciliation_dates)
-
-    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE_REC'], False)
-        
-    curbal, startbal = Transactions.get_current_balance(acct_id)
-
-    prior_end_bal = mr_reconciliation.statement_end_bal
+    username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
