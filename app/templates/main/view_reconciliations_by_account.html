@@ -17,7 +17,7 @@
     <h1>select account to view reconciliation history</h1>
       {% for item in items %}
        
-      <div> name: {{ item.acct_name }} | type: {{ item.type }} | account id:  {{ item.id  }} | current balance: {{ item.current_balance }} | <a href="{{ url_for('main.adjust_reconciliation', username=current_user.username, rec_id=item.id) }}">adjust reconciliation</a> | <a href="{{ url_for('main.start_reconciliation', username=current_user.username, id=item.id) }}">reconcile</a> | <a href="{{ url_for('main.view_reconciliations', username=current_user.username, id=item.id) }}">see reconciliation history | </a> <a href="{{ url_for('main.register', username=current_user.username, id=item.id) }}">account register</a>
+      <div> name: {{ item.acct_name }} | type: {{ item.type }} | account id:  {{ item.id  }} | current balance: {{ item.current_balance }} | <a href="{{ url_for('main.adjust_reconciliation', username=current_user.username, rec_id=item.id) }}">adjust reconciliation</a> | <a href="{{ url_for('main.start_reconciliation', username=current_user.username, acct_id=item.id) }}">reconcile</a> | <a href="{{ url_for('main.view_reconciliations', username=current_user.username, id=item.id) }}">see reconciliation history | </a> <a href="{{ url_for('main.register', username=current_user.username, id=item.id) }}">account register</a>
         <hr>
       {% endfor %}
       <div><a href="{{ url_for('main.create_account', username=current_user.username) }}">create account</a>

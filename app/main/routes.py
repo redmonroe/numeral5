@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 from flask import render_template, flash, redirect, url_for, request, g, \
@@ -417,16 +417,23 @@ def delete_reconciliation(username, id, acct_id):
 
     return redirect(url_for('main.view_reconciliations', username=username, id=acct_id))
 
-@bp.route('/start_reconciliation/<username>/<id>', methods=['GET', 'POST'])
+@bp.route('/start_reconciliation/<username>/<acct_id>', methods=['GET', 'POST'])
 @login_required
-def start_reconciliation(username, id):
+def start_reconciliation(username, acct_id):
     user = User.query.filter_by(username=username).first()
 
-    # if no previous reconciliation then use startbal
-    # r = Reconciliation.query.filter(Reconciliation.acct_id == id).order_by(Reconciliation.date.desc()).first()
+    result = Reconciliation.query.filter(Reconciliation.acct_id == acct_id).order_by(Reconciliation.end_date.desc()).first()
 
-    # if r == None:
-    form = ReconciliationForm()
+    if result == None:
+        form = ReconciliationForm(prior_ending_balance=account.startbal)
+        # if no previous reconciliation then use startbal
+        account = Accounts.query.get(acct_id)
+    else:
+        #add one day to last end date
+        legacy_end_date = result.end_date
+        adjusted_start_date = legacy_end_date + timedelta(1)
+        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+
     if form.validate_on_submit():
         new_reconciliation = Reconciliation()
         new_reconciliation.create_date = datetime.utcnow()
@@ -435,14 +442,17 @@ def start_reconciliation(username, id):
         new_reconciliation.end_date = form.end_date.data
         new_reconciliation.prior_end_balance = form.prior_end_balance.data
         new_reconciliation.statement_end_bal = form.statement_end_bal.data
-        new_reconciliation.acct_id = id
+        new_reconciliation.acct_id = acct_id
+        new_reconciliation.is_first = False
     
         db.session.add(new_reconciliation)
         db.session.commit()
         db.session.close()
         flash('congratulations, you started reconciling . . .')
-        return redirect(url_for('main.reconcile', username=username, acct_id=id))
-    return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=id)
+        return 'hello'
+    # return 'hello ok'
+        return redirect(url_for('main.reconcile', username=username, acct_id=acct_id))
+    return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=acct_id)
 
 @bp.route('/adjust_reconciliation/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
