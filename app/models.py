@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from app import db, login
+from sqlalchemy import or_, and_
 
 
 # followers = db.Table(
@@ -158,6 +159,35 @@ class Reconciliation(db.Model):
     txnjsn = db.Column(db.String)
     checkboxjsn = db.Column(db.String)
     is_first = db.Column(db.Boolean)
+
+    def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None):
+
+        user = User.query.filter_by(username=username).first()
+
+        # building the query
+        transactions_and_transfers_native = Transactions.acct_id == acct_id
+
+        transfers_foreign = and_(Transactions.type == 'transfer',
+                                 Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
+
+        reconciliation_dates = and_(Transactions.date >= target_rec.start_date, Transactions.date <=
+                                    target_rec.end_date)  # start & end dates come from query for most recent reconciliation
+
+        filter_args = [transactions_and_transfers_native, transfers_foreign]
+
+        or_filter = or_(*filter_args)
+
+        results = Transactions.query.filter(or_filter)
+        results = Transactions.query.filter(reconciliation_dates)
+        results = results.order_by(Transactions.date.asc()).paginate(
+            page, current_app.config['ITEMS_PER_PAGE_REC'], False)
+
+        # get starting and current balances
+        curbal, startbal = Transactions.get_current_balance(acct_id)
+        prior_end_bal = target_rec.statement_end_bal
+
+        rec_id = target_rec.id
+        return username, results, startbal, curbal, prior_end_bal, rec_id
 
 class Reports(object):
     @staticmethod

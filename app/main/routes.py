@@ -9,6 +9,7 @@ from flask_babel import _, get_locale
 from app import db
 from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm, ReconciliationForm, EditReconciliationForm, EmptyForm, ReportSelectForm
 from app.models import User, Accounts, Categories, Transactions, Reconciliation, Reports
+from sqlalchemy import or_, and_
 # from app.translate import translate
 from app.main import bp
 
@@ -424,16 +425,24 @@ def start_reconciliation(username, acct_id):
 
     result = Reconciliation.query.filter(Reconciliation.acct_id == acct_id).order_by(Reconciliation.end_date.desc()).first()
 
-    if result == None:
-        form = ReconciliationForm(prior_ending_balance=account.startbal)
-        # if no previous reconciliation then use startbal
-        account = Accounts.query.get(acct_id)
-    else:
-        #add one day to last end date
-        legacy_end_date = result.end_date
-        adjusted_start_date = legacy_end_date + timedelta(1)
-        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+    print(result.finalized)
 
+    # if result == None: #this branch is for first reconciliation in the account
+    #     form = ReconciliationForm(prior_ending_balance=account.startbal)
+    #     # if no previous reconciliation then use startbal
+    #     account = Accounts.query.get(acct_id)
+    # elif result.finalized == None: # this branch is for if last reconciliation is still open
+    #     # form = ReconciliationForm(prior_ending_balance=account.startbal)
+    #     return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    #     # should send us to continue
+    #     pass
+    # else:
+    #     #add one day to last end date
+    #     legacy_end_date = result.end_date
+    #     adjusted_start_date = legacy_end_date + timedelta(1)
+    #     form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+
+    form = ReconciliationForm()
     if form.validate_on_submit():
         new_reconciliation = Reconciliation()
         new_reconciliation.create_date = datetime.utcnow()
@@ -477,44 +486,22 @@ def adjust_reconciliation(username, rec_id):
 @login_required
 def reconcile(username, acct_id):
 
-    most_recent_reconciliation = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
-
-    from sqlalchemy import or_, and_
-    
-    user = User.query.filter_by(username=username).first()
+    # this is a little brittle
+    target_rec = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
 
     page = request.args.get('page', 1, type=int)
 
-    ## this can be reduced along with searches in 
+    rec = Reconciliation()
 
-    transactions_and_transfers_native = Transactions.acct_id == acct_id
+    username, results, startbal, curbal, prior_end_bal, rec_id = rec.reconciliation_wrapper(target_rec=target_rec, 
+        username=username, acct_id=acct_id, page=page)
 
-    transfers_foreign = and_(Transactions.type == 'transfer', Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
-
-    reconciliation_dates = and_(Transactions.date >= most_recent_reconciliation.start_date, Transactions.date <= most_recent_reconciliation.end_date) # start & end dates come from query for most recent reconciliation
-
-    filter_args = [transactions_and_transfers_native, transfers_foreign]
-
-    or_filter = or_(*filter_args)
-
-    results = Transactions.query.filter(or_filter) 
-
-    results = Transactions.query.filter(reconciliation_dates)
-
-    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE_REC'], False)
-        
-    curbal, startbal = Transactions.get_current_balance(acct_id)
-
-    prior_end_bal = most_recent_reconciliation.statement_end_bal
-
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=most_recent_reconciliation.id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
 def continue_reconcile(username, rec_id):
     mr_reconciliation = Reconciliation.query.get(rec_id)
-
-    from sqlalchemy import or_, and_
     
     user = User.query.filter_by(username=username).first()
 
