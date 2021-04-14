@@ -42,7 +42,7 @@ class TransactionCreationForm(FlaskForm):
     submit = SubmitField('add transaction to register')
 
 class EditTransactionForm(TransactionCreationForm):
-    submit = SubmitField('submit category changes')
+    submit = SubmitField('submit transaction changes')
 
 class ReconciliationForm(FlaskForm):
     start_date = DateField('statement start date', validators=[DataRequired()])

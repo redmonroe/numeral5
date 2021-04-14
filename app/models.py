@@ -90,7 +90,6 @@ class Categories(db.Model):
         spacer = '**'
         return f'{self.name:-^40} {spacer:>2} {self.inorex:^20}'
 
-
 class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Date)
