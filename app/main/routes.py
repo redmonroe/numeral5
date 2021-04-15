@@ -395,8 +395,6 @@ def view_reconciliations(username, id):
 @login_required
 def view_reconciliations_by_account(username):
 
-    #TODO: add last reconciled date
-
     user = User.query.filter_by(username=username).first()
     r = Accounts.query.filter(Accounts.user_id == user.id).all()
 
@@ -410,11 +408,18 @@ def delete_reconciliation(username, id, acct_id):
 
     user = User.query.filter_by(username=username).first()
 
+    #on delete, release all txn from Reconciled = True
     r = Reconciliation.query.get(id)
 
-    #emergency reset all transactions to reconciled = False
-    txn = Transactions.query.filter(Transactions.acct_id == acct_id).all()
-    print(txn)
+
+    ## should show warning if trying to delete finalized == True
+    if r.finalized == True:
+        reconciled_is_true_list = json.loads(r.txnjsn)
+        
+        for item in reconciled_is_true_list:
+            txn = Transactions.query.get(item)
+            txn.reconciled = False
+            db.session.commit()
 
     db.session.delete(r)
     db.session.commit()
@@ -469,7 +474,6 @@ def start_reconciliation(username, acct_id):
         db.session.add(new_reconciliation)
         db.session.commit()
         db.session.close()
-        flash('congratulations, you started reconciling . . .')
         return redirect(url_for('main.reconcile', username=username, acct_id=acct_id))
     return render_template('main/start_reconciliation.html', username=username, form=form, acct_id=acct_id)
 
