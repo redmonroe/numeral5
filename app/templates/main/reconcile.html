@@ -13,20 +13,27 @@
       div {text-align: left;}
     </style>
     <title>reconcile</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>    
     <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="{{ url_for('static', filename='js/reconcile.js') }}" type="text/javascript"></script>
+
+   
 
 </head>
 
 <body>
-    <div class=startbal value="{{ startbal.startbal }}">
+    <div class=startbal value="{{ startbal }}">
     <div class=recId value="{{ rec_id }}"></div>
     <div class=acctId value="{{ acct_id }}"></div>
     <div class=userName value="{{ username }}"></div>
     <h1>reconcile</h1>
+
     <a type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button" href="{{ url_for('main.accounts', username=current_user.username) }}">finished</a>
-    </div>
+
+    <a type="button" id='check_all' class="btn btn-primary btn-lg check_all" data-bs-toggle="button"></a>
+
 
 
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
@@ -77,8 +84,8 @@
                 </td>                        
                 <td>
                     <div id="checkbox-container">                                                   
-                        <label class="form-check-label" for="option{{ item.id }}" data-amount="{{ item.amount }}" name="{{ item.id }}">                        
-                        <input class="form-check-input current" value="{{ item.amount }}"    name="{{ item.id }}" type="checkbox" id="option{{ item.id }}">
+                        <label class="form-check-label" for="option{{ item.id }}" data-amount="{{ item.amount }}" name="{{ item.id }}">                                               
+                        <input class="form-check-input current cbox" value="{{ item.amount }}" name="{{ item.id }}" type="checkbox" id="option{{ item.id }}">
                     </div>
                 </td> 
                 <td>{{ item.reconciled }}</td>
@@ -86,8 +93,7 @@
             </tr>
             {% endfor %}
         </tbody>
-        </table>
-
+    </table>
 
     <table class="table table-striped" id="table" data-toggle="table" data-height="460">
         <thead class='thead-dark'>
@@ -111,7 +117,7 @@
         </thead>
         <tbody>
             <tr>
-                <td><span>{{ startbal.startbal }}</span></td>   
+                <td><span>{{ startbal }}</span></td>   
 
                 <td><span id=reconciledChanges></span></td>            
                 
@@ -125,237 +131,6 @@
             </tr>
         </tbody>
     </table>     
-
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
-
-{% block javascript %}
-
-<script type=text/javascript>  
-
-
-    function selectValues (querySelector) {
-    // use to set startValue (starting balance) and endValue (ending balance)
-        const returnArray = document.querySelectorAll(querySelector);   
-
-        returnArray.forEach(function(element) {
-            let returnBal = currency(element.getAttribute('value'));
-            returnValue = returnBal.value;   
-            });
-        return returnValue;
-    }
-
-    function compareBalance (startBal, reconciledChange) {
-    // computes change between starting balance and computed ending balance as transactions are clicked on
-        console.log('startBal', startBal, 'reconciledCh', reconciledChange);
-        let compEndBal = startBal + reconciledChange
-        $('#difference').text(currency(compEndBal));
-        return compEndBal;
-    }
-
-    function discrepancyWork (compEndBal, UEndBal) {
-        // computes change between computed ending balance and user-entered ending balance as transactions are clicked on
-        //if discrepancy = 0 this function will also show finish button
-        let discrepancy = currency(UEndBal).subtract(compEndBal)
-        console.log('discrepancy to match:', discrepancy.value);
-            if (discrepancy.value === 0.00) {
-            $('.finished').show();      
-            }
-        $('#discrepancy').text(discrepancy);
-        return discrepancy;
-        }
-
-    function changeHelper(sumChange, startValue, endValue, idArray, recId, flag=null) {
-
-        if (flag === 1){
-            console.log("sumChange (branch 1):", sumChange);      
-            let compEndBal = compareBalance(startValue, sumChange);
-            let discrepancy = discrepancyWork(compEndBal, endValue);
-            console.log('rc idarray:', idArray, '|', typeof(idArray));
-            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-            amount: sumChange, 
-            idArray: idArray, 
-            recId: recId, 
-        },  function(data) {
-            $("#reconciledChanges").text(data.result);
-            $('.finished').on('click', function() {
-            
-                // let recId = $('.recId')
-            $.getJSON($SCRIPT_ROOT + '/_reconciled_button', {
-            amount: sumChange, 
-            idArray: idArray, 
-            recId: recId, 
-        })       
-            console.log(data);
-            
-            })          
-        })
-        } else if (flag === 2) {
-            console.log("sumChange value (branch object):", sumChange.value); 
-            let compEndBal = compareBalance(startValue, sumChange.value);
-            let discrepancy = discrepancyWork(compEndBal, endValue);
-            console.log('rc idarray:', idArray, typeof(idArray));
-            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-            amount: sumChange.value, 
-            idArray: idArray
-        },  function(data) {
-            $("#reconciledChanges").text(data.result);
-        })      
-        } else {
-            let sumChange = 0;
-            console.log("sumChange (branch zero):", sumChange); 
-            let compEndBal = compareBalance(startValue, sumChangee);
-            let discrepancy = discrepancyWork(compEndBal, endValue);
-             console.log('rc idarray:', idArray, typeof(idArray));
-            $.getJSON($SCRIPT_ROOT + '/_reconciled', {
-            amount: sumChange, 
-            idArray: idArray
-        },  function(data) {
-            $("#reconciledChanges").text(data.result);
-        }) 
-    }}    
-
-    function reconcileChanges(sumChange, startValue, endValue, idArray, recId) {
-
-        if (typeof(sumChange) === "number") {
-            changeHelper(sumChange, startValue, endValue, idArray, recId, flag=1);
-              
-        } else if (typeof(sumChange) === 'object') {
-            changeHelper(sumChange, startValue, endValue, idArray, recId, flag=2)
-        }            
-        else {
-            changeHelper(sumChange, startValue, endValue, idArray, recId)
-                  
-            }  }    
-
-    $(document).ready(function() {
-    //set initial state   
-    $('.finished').hide();  //hides 'finished' button until discrepancy = 0 
-
-    //gathers values from html
-    let startValue = selectValues('div.startbal');
-    let endValue = selectValues('div.endbal');
-    let recId = selectValues('div.recId');
-
-    //set starting values for user-readable boxes
-    $('#reconciledChanges').text('0');
-    let compEndBal = compareBalance(startValue, 0)
-    let discrepancy = discrepancyWork(compEndBal, endValue);
-    $('#discrepancy').text(discrepancy);
-
-    //starting values for checkboxes
-    let checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
- 
-    let $checkboxes = $("#checkbox-container :checkbox");
-    console.log('starting checkboxValues, $checkboxes:', checkboxValues, $checkboxes);
-
-    //load persisted checkboxes
-    $.each(checkboxValues, function(key, value) {
-    $("#" + key).prop('checked', value);
-        });
-
-    //following handles events from checkboxes, this starts the events
-    $('.current').change(function() {         
-        console.log("The checkbox with the ID '" + this.id + "' changed" + this.checked);
-       
-
-        if(this.checked) {
-            console.log('*****branch checked');
-
-            checkboxValues[this.id] = this.checked;
-            console.log(checkboxValues);
-            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-
-            checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-           
-            $.getJSON($SCRIPT_ROOT + '/_persist_checkboxes', {
-            checkboxObject: checkboxValues,
-            recId: recId,  
-        },  function(data) {
-            
-        })  
-
-            
-            let sumArray = [];
-            let idArray = [];
-            const reducer = (acc, currentVal) => currency(acc).add(currentVal);     
-
-            let collection = document.getElementsByClassName('current');
-            //item is an HTMLcollections
-
-            Array.from(collection).forEach(function (element) {
-            if (element.checked == true) {       
-                
-                let floatElement = currency(element.value); 
-                let idElement = element.name
-
-                idArray.push(parseInt(idElement))
-                sumArray.push(floatElement.value);
-                // console.log(idElement, idArray);
-
-                let sumChange = sumArray.reduce(reducer); 
-                reconcileChanges(sumChange, startValue, endValue, idArray, recId);
-                }       
-            });
-            
-        } else if (!this.checked) {   
-            console.log('******branch unchecked'); 
-
-            checkboxValues[this.id] = false;
-            console.log(checkboxValues);
-            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-
-
-            let sumArray = [];
-            let idArray = [];
-            const reducer = (acc, currentVal) => currency(acc).add(currentVal);    
-     
-            let collection = document.getElementsByClassName('current');
-
-            Array.from(collection).forEach(function (element) {
-            if (element.checked == true) {
-                let floatElement = currency(element.value)
-                let idElement = element.name
-                
-                idArray.push(parseInt(idElement))
-                sumArray.push(floatElement.value);
-                console.log(idElement, idArray);
-                
-                let sumChange = sumArray.reduce(reducer)                
-                reconcileChanges(sumChange, startValue, endValue, idArray, recId);
-            }  
-            
-            else {
-                console.log('******branch null'); 
-                $('#reconciledChanges').text('0');
-                let compEndBal = compareBalance(startValue, 0)
-                let discrepancy = discrepancyWork(compEndBal, endValue);
-                $('#discrepancy').text(discrepancy);
-            }          
-
-        });
-            }
-        });
-    }); 
-
-
-
-
-    // $checkboxes.on("change", function(){
-    // $checkboxes.each(function(){
-    //     checkboxValues[this.id] = this.checked;
-    // });
-    
-    // localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-    // });
-
-    // // On page load
-    // $.each(checkboxValues, function(key, value) {
-    //     console.log('cv', checkboxValues);
-    // $("#" + key).prop('checked', value);
-    // });
-    
-</script>
-{% endblock %}
     
 </body>
 </html>

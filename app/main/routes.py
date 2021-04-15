@@ -412,6 +412,10 @@ def delete_reconciliation(username, id, acct_id):
 
     r = Reconciliation.query.get(id)
 
+    #emergency reset all transactions to reconciled = False
+    txn = Transactions.query.filter(Transactions.acct_id == acct_id).all()
+    print(txn)
+
     db.session.delete(r)
     db.session.commit()
     db.session.close()
@@ -424,8 +428,6 @@ def start_reconciliation(username, acct_id):
     user = User.query.filter_by(username=username).first()
 
     result = Reconciliation.query.filter(Reconciliation.acct_id == acct_id).order_by(Reconciliation.end_date.desc()).first()
-
-    print(result.finalized)
 
     if result == None: #this branch is for first reconciliation in the account
         # if no previous reconciliation then use Account.startbal
@@ -446,6 +448,7 @@ def start_reconciliation(username, acct_id):
         return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
     else:
+        # this branch is for starting a new reconciliation & pre-filling the columns
         #add one day to last end date
         legacy_end_date = result.end_date
         adjusted_start_date = legacy_end_date + timedelta(1)
@@ -498,6 +501,7 @@ def reconcile(username, acct_id):
     # this is a little brittle
     target_rec = Reconciliation.query.order_by(Reconciliation.create_date.desc()).first()
 
+    print(target_rec.id)
     page = request.args.get('page', 1, type=int)
 
     rec = Reconciliation()
@@ -505,7 +509,9 @@ def reconcile(username, acct_id):
     username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
         username=username, acct_id=acct_id, page=page)
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    print(target_rec.prior_end_balance, startbal.startbal, prior_end_bal)
+
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
@@ -521,7 +527,7 @@ def continue_reconcile(username, rec_id):
 
     username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/_reconciled')
 @login_required
@@ -598,6 +604,14 @@ def reconciled_button():
     return jsonify(result=0)
 
 
+@bp.route('/reset_reconciliations', methods=['GET', 'POST'])
+def reset_reconciliations():
+    txns = Transactions.query.all()
+    for txn in txns:
+        print(txn)
+        txn.reconciled = False
+        db.session.commit()
+
 @bp.route('/_persist_checkboxes')
 @login_required
 def persist_checkboxes():
@@ -612,7 +626,7 @@ def persist_checkboxes():
     current_reconciliation = Reconciliation.query.get(reconciliation_id)
 
     current_reconciliation.checkboxjsn = checkbox_str_for_db
-    db.session.commit()
+    # db.session.commit()
     # str_checkbox_list = checkbox_values.getlist('checkboxObject{}')
     # print(str_checkbox_list)
     # checkbox_list = [int(item) for item in str_checkbox_list]
@@ -625,13 +639,6 @@ def persist_checkboxes():
     # id_str_for_db = json.dumps(id_list)
     # print('json dumps:', id_str_for_db, type(id_str_for_db))
 
-    
-
-    # txns = Transactions.query.all()
-    # for txn in txns:
-    #     print(txn)
-    #     txn.reconciled = False
-    #     db.session.commit()
 
 
     # amount_list.append(float(amount))
