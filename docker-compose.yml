@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  numeral5:
+    image: numeral5
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 5000:5000

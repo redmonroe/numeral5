@@ -32,7 +32,7 @@
 
     <a type="button" id='finished' class="btn btn-primary btn-lg finished" data-bs-toggle="button" href="{{ url_for('main.accounts', username=current_user.username) }}">finished</a>
 
-    <a type="button" id='check_all' class="btn btn-primary btn-lg check_all" data-bs-toggle="button"></a>
+    <a type="button" id='all_or_none' class="btn btn-primary btn-lg all_or_none" data-bs-toggle="button"></a>
 
 
 
@@ -108,7 +108,7 @@
                     <h4>U-entered ending st bal</h4>
                 </th>
                 <th>
-                    <h4>computed end bal</h4>
+                    <h4>imputed end bal(started - clicked on changes)</h4>
                 </th>
                 <th>
                     <h4>difference</h4>

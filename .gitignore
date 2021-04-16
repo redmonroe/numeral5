@@ -53,6 +53,7 @@ coverage.xml
 
 
 # project specific gitignores
+/db_backups
 alembic.ini
 db_backups/dump1130202019.sql
 .vscode/.ropeproject/config.py
