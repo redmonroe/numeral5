@@ -1,5 +1,3 @@
-
-
 //reconcile.html functions
 function selectValues(querySelector) {
     // use to set startValue (starting balance) and endValue (ending balance)
@@ -11,14 +9,12 @@ function selectValues(querySelector) {
     });
     return returnValue;
 }
-
 function compareBalance(startBal, reconciledChange) {
     // computes change between starting balance and computed ending balance as transactions are clicked on
     let compEndBal = startBal + reconciledChange
     $('#difference').text(currency(compEndBal));
     return compEndBal;
 }
-
 function discrepancyWork(compEndBal, UEndBal) {
     // computes change between computed ending balance and user-entered ending balance as transactions are clicked on
     //if discrepancy = 0 this function will also show finish button
@@ -29,7 +25,6 @@ function discrepancyWork(compEndBal, UEndBal) {
     $('#discrepancy').text(discrepancy);
     return discrepancy;
 }
-
 function changeHelper(sumChange, startValue, endValue, idArray, recId) {
 
     if (sumChange !== 0) {
@@ -62,14 +57,11 @@ function changeHelper(sumChange, startValue, endValue, idArray, recId) {
             $("#reconciledChanges").text(data.result);
         })
     } }
-
-
 function compareLength(checkboxValues, totalBoxes) {
     let checkedCount = 0;
-    console.log('checkedCount', checkedCount);
+
     for (const [key, value] of Object.entries(checkboxValues)) {
         if (value === true) {
-            console.log(key, value);
             checkedCount += 1;
         }
     }
@@ -112,43 +104,11 @@ function uncheckAll(totalBoxes) {
 
 }
 
-
-    // function updateButtonStatus() {
-    //     $button.text(compareLength() ? "uncheck all" : "check all");
-    // }
-
-    // $checkboxes.on("change", function () {
-    //     updateButtonStatus();
-    // });
-
-    // function handleButtonClick() {
-    //     $checkboxes.prop("checked", allChecked() ? false : true)
-    // }
-
-    // $("button").on("click", function () {
-    //     handleButtonClick();
-    // });
-
-    // let formValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-
-    // function updateStorage() {
-    //     $checkboxes.each(function () {
-    //         formValues[this.id] = this.checked;
-    //     });
-
-    //     formValues["buttonText"] = $button.text();
-    //     localStorage.setItem("formValues", JSON.stringify(formValues));
-    // }  
-
-
-
-
 $(document).ready(function () {
     // window.localStorage.clear();
 
     //set initial state
-    // var formValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-        //buttons
+
     $('.finished').hide();  //hides 'finished' button until discrepancy = 0 
     let $button = $("#all_or_none"); //checkall/none button 
     //gathers values from html
@@ -158,16 +118,15 @@ $(document).ready(function () {
     //set starting values for user-readable boxes
     //loads contents of localStorage into checkboxValues; persistence comes from here
     let checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};  
-    $button.text('check all');
+    console.log(checkboxValues['buttonText']);
+    $button.text(checkboxValues['buttonText']);
 
     console.log('initial state', checkboxValues);  
     let $checkboxes = $("#checkbox-container :checkbox");
         //checks actual boxes after loading from localStorage
     $.each(checkboxValues, function (key, value) {
             $("#" + key).prop('checked', value);
-        });
-        
-        
+        });       
         //sets initial state of checkall/none button
     let totalBoxes = document.querySelectorAll('.cbox');
         //get clicked changes from checkboxValues and load them in lower box
@@ -177,8 +136,7 @@ $(document).ready(function () {
         
     let compEndBal = compareBalance(startValue, 0)
     let discrepancy = discrepancyWork(compEndBal, endValue);
-    $('#discrepancy').text(discrepancy);
-        
+    $('#discrepancy').text(discrepancy);        
    
     //if checkedCount equals 0 > check_all else otherwise show deselect all
     //this should be run at every check click & should update localStorage as well
@@ -201,7 +159,6 @@ $(document).ready(function () {
         }
     }
     //select_all/none functions
-
     function universalClick(totalBoxes, checkedBool) {
         let keyArray = [];
         let idArray = [];
@@ -236,32 +193,57 @@ $(document).ready(function () {
         }
     }
 
-
     $(".all_or_none").on("click", function () {
         if ($button.text() === 'check all') {
-        console.log('check all');
-        function checkAll(totalBoxes) {
-            for (const [key, value] of Object.entries(totalBoxes)) {
-                value['checked'] = true;
-                console.log(value['checked']);
+            console.log('check all');
+            function checkAll(totalBoxes) {
+                keyArray = [];
+                valueArray = [];
+                for (const [key, value] of Object.entries(totalBoxes)) {
+              
+                    value['checked'] = true;
+                    keyArray.push('option'+ key);
+                    valueArray.push(value['checked']);
+                    console.log('option'+ key, value['checked']);
+                }
+                return [totalBoxes, keyArray, valueArray];
             }
-
-        }
-        checkAll(totalBoxes);
-        universalClick(totalBoxes, true)
-        $button.text('uncheck all');
+            returnValues = checkAll(totalBoxes);
+            keyArray = returnValues[1];
+            valueArray = returnValues[2];
+            checkboxValues = {};
+            for (var i = 0; i < keyArray.length; i++)
+                checkboxValues[keyArray[i]] = valueArray[i];
+            console.log('hash', checkboxValues);
+            $button.text('uncheck all');
+            checkboxValues["buttonText"] = 'uncheck all';
+            console.log(checkboxValues);
+            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+            universalClick(returnValues[0], true)
          }
         else {
             console.log('uncheck_all');
             function uncheckAll(totalBoxes) {
+                keyArray = [];
+                valueArray = [];
                 for (const [key, value] of Object.entries(totalBoxes)) {
                     value['checked'] = false;
+                    keyArray.push('option' + key);
+                    valueArray.push(value['checked']);
                     console.log(value['checked']);
-                }
+                } return [totalBoxes, keyArray, valueArray];
             }
-            uncheckAll(totalBoxes);
-            universalClick(totalBoxes, false)
+            returnValues = uncheckAll(totalBoxes);
+            keyArray = returnValues[1];
+            valueArray = returnValues[2];
+            checkboxValues = {};
+            for (var i = 0; i < keyArray.length; i++)
+                checkboxValues[keyArray[i]] = valueArray[i];
+            console.log('hash', checkboxValues);
             $button.text('check all');
+            checkboxValues["buttonText"] = 'check all';
+            localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
+            universalClick(returnValues[0], false)
 
          }
     });
@@ -273,16 +255,7 @@ $(document).ready(function () {
    
         localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
         checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-        checkedBool = compareLength(checkboxValues, totalBoxes);
-        console.log('pre cbv', checkboxValues); 
-
-     
-
-
-
-
-        
-        console.log('p cbv', checkboxValues); 
+        checkedBool = compareLength(checkboxValues, totalBoxes); 
         universalClick(totalBoxes, checkedBool);    
         
         
@@ -291,74 +264,3 @@ $(document).ready(function () {
         );
     });
 
-
-    // console.log("The checkbox with the ID " + this.id + " changed " + this.checked);
-//     if (this.checked) {
-//         console.log('*****branch checking');
-
-//         checkboxValues[this.id] = this.checked;
-//         localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-
-//         checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-
-//         let sumArray = [];
-//         let idArray = [];
-//         const reducer = (acc, currentVal) => currency(acc).add(currentVal);
-
-//         let collection = document.getElementsByClassName('current');
-//         //item is an HTMLcollections
-
-//         Array.from(collection).forEach(function (element) {
-//             if (element.checked == true) {
-
-//                 let floatElement = currency(element.value);
-//                 let idElement = element.name
-
-//                 idArray.push(parseInt(idElement))
-//                 sumArray.push(floatElement.value);
-//                 // console.log(idElement, idArray);
-
-//                 let sumChange = sumArray.reduce(reducer);
-//                 reconcileChanges(sumChange, startValue, endValue, idArray, recId);
-//             }
-//         });
-
-//     } else if (!this.checked) {
-//         console.log('******branch unchecking');
-
-//         checkboxValues[this.id] = false;
-//         console.log(checkboxValues);
-//         localStorage.setItem("checkboxValues", JSON.stringify(checkboxValues));
-
-//         checkboxValues = JSON.parse(localStorage.getItem('checkboxValues')) || {};
-
-//         let sumArray = [];
-//         let idArray = [];
-//         const reducer = (acc, currentVal) => currency(acc).add(currentVal);
-
-//         let collection = document.getElementsByClassName('current');
-
-//         Array.from(collection).forEach(function (element) {
-//             if (element.checked == true) {
-//                 let floatElement = currency(element.value)
-//                 let idElement = element.name
-
-//                 idArray.push(parseInt(idElement))
-//                 sumArray.push(floatElement.value);
-//                 console.log(idElement, idArray);
-
-//                 let sumChange = sumArray.reduce(reducer)
-//                 reconcileChanges(sumChange, startValue, endValue, idArray, recId);
-//             }
-
-//             else {
-//                 console.log('******branch nothing checked');
-//                 $('#reconciledChanges').text('0');
-//                 let compEndBal = compareBalance(startValue, 0)
-//                 let discrepancy = discrepancyWork(compEndBal, endValue);
-//                 $('#discrepancy').text(discrepancy);
-//             }
-
-//         });
-//     }
-// }
