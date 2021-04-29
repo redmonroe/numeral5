@@ -93,3 +93,8 @@ n5/share/jupyter/kernels/python3/logo-64x64.png
 html_scrap.txt
 node_modules/currency.js/changelog.md
 .gitignore
+app/static/js/reconcile.js
+jQuery-Plugin-To-Persist-Checkbox-State-Using-Local-Storage/README.md
+node_modules/currency.js/readme.md
+node_modules/currency.js/license
+jQuery-Plugin-To-Persist-Checkbox-State-Using-Local-Storage/LICENSE

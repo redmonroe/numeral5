@@ -538,13 +538,20 @@ def continue_reconcile(username, rec_id):
 def reconciled():
     amount_list = []
 
-    ids = request.args
+    ids = request.args #dict with key 'amount' & value amounts as string
     str_id_list = ids.getlist('idArray[]')
     id_list = [int(item) for item in str_id_list]
+    print(id_list)
 
+    test_dict = {
+        'id': None, 
+        'count': None, 
+        'txn_amount': None, 
+        'running_total': None
+    }
 
     id_str_for_db = json.dumps(id_list)
-    print('json dumps:', id_str_for_db, type(id_str_for_db))
+    # print('json dumps:', id_str_for_db, type(id_str_for_db))
 
     #implement button click change
     # on button click print SEND TOO
@@ -564,22 +571,34 @@ def reconciled():
 
 
 
-    amount = request.args.get('amount', 0, type=str)
+    this_one = request.args.get('txnAmount', 0, type=str)
+    sum_change = request.args.get('sumChange', 0, type=str)
 
    
-    amount_list.append(float(amount))
-    amount = sum(amount_list)
-    print('reconciled amount:', amount)
-    print('id list:', id_list)
+    amount_list.append(float(sum_change))
+    running_total = sum(amount_list)
+    # print('reconciled running_total:', running_total)
+    # print('id list:', id_list)
+
+
+
+    test_summary_list = []
+    for count, item in enumerate(id_list, 1):
+        test_dict['count'] = count
+        test_dict['id'] = item
+        # db_amount = Transactions.query.get()
+        test_dict['txn_amount'] = None
+        test_dict['running_total'] = running_total
+        test_summary_list.append(test_dict)
+
+    # print(test_summary_list)
     
-    return jsonify(result=amount)
+    return jsonify(result=None)
 
 @bp.route('/_reconciled_button')
 @login_required
 def reconciled_button():
     print('RECONCILED BUTTON')
-    amount_list = []
-
     amount = request.args.get('amount', 0, type=str)
 
     ids = request.args
@@ -587,11 +606,10 @@ def reconciled_button():
     id_list = [int(item) for item in str_id_list]
 
     id_str_for_db = json.dumps(id_list)
-    print('json dumps:', id_str_for_db, type(id_str_for_db))
 
-    message = request.args.get('message', 0, type=str)
     reconciliation_id = request.args.get('recId', 0, type=str)
 
+    # gets the transactions from id list and marks them as reconciled=True
     for idd in id_list:
         txn = Transactions.query.get(idd)
         txn.reconciled = True #should be True in production
@@ -601,11 +619,14 @@ def reconciled_button():
 
     current_reconciliation = Reconciliation.query.get(reconciliation_id)
 
+    #finalized the reconciliation
     current_reconciliation.finalized = True
+    # stores the reconciliation id list so when we delete reconciliation, the transactions will be released 
     current_reconciliation.txnjsn = id_str_for_db
     print('cur txn:', current_reconciliation.txnjsn)
+    current_reconciliation.count = len(id_list)
     db.session.commit()
-    return jsonify(result=0)
+    return jsonify(result=None)
 
 
 @bp.route('/reset_reconciliations', methods=['GET', 'POST'])
