@@ -1,17 +1,21 @@
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
-import json
-from flask import render_template, flash, redirect, url_for, request, g, \
-    jsonify, current_app
-from flask_login import current_user, login_required
-from flask_babel import _, get_locale
-# from guess_language import guess_language
+
 from app import db
-from app.main.forms import AccountCreationForm, EditAccountForm, EditCategoryForm, CategoryCreationForm, TransactionCreationForm, EditTransactionForm, ReconciliationForm, EditReconciliationForm, EmptyForm, ReportSelectForm
-from app.models import User, Accounts, Categories, Transactions, Reconciliation, Reports
-from sqlalchemy import or_, and_
-# from app.translate import translate
 from app.main import bp
+from app.main.forms import (AccountCreationForm, CategoryCreationForm,
+                            EditAccountForm, EditCategoryForm,
+                            EditReconciliationForm, EditTransactionForm,
+                            EmptyForm, ReconciliationForm, ReportSelectForm,
+                            TransactionCreationForm)
+from app.models import (Accounts, Categories, Reconciliation, Reports,
+                        Transactions, User)
+from flask import (current_app, flash, g, jsonify, redirect, render_template,
+                   request, url_for)
+from flask_babel import _, get_locale
+from flask_login import current_user, login_required
+from sqlalchemy import and_, or_
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -288,9 +292,12 @@ def deletedtxn(username, id, acct):
 
     r = Transactions.query.get(id)
 
-    db.session.delete(r)
-    db.session.commit()
-    db.session.close()
+    referrer = request.referrer
+    print(referrer)
+
+    # db.session.delete(r)
+    # db.session.commit()
+    # db.session.close()
 
     flash('congratulations, you deleted a transaction')
     return redirect(url_for('main.register', username=username, id=acct))
@@ -344,7 +351,7 @@ def edit_transaction(username, id):
 @bp.route('/register/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def register(username, id):
-    from sqlalchemy import or_, and_
+    from sqlalchemy import and_, or_
     
     user = User.query.filter_by(username=username).first()
 
@@ -627,12 +634,6 @@ def user_popup(username):
     form = EmptyForm()
     return render_template('user_popup.html', user=user, form=form)
 
-
-
-
-
-
-
 @bp.route('/reports/<username>/', methods=['GET', 'POST'])
 @login_required
 def reports(username):
@@ -717,9 +718,10 @@ def createdb():
 
 @bp.route('/dumpdb')
 def dumpdb():
-    from datetime import datetime as dt
-    from config import Config
     import os
+    from datetime import datetime as dt
+
+    from config import Config
 
     def pg_dump_one():
         bu_time = dt.now()
