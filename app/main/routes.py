@@ -533,68 +533,6 @@ def continue_reconcile(username, rec_id):
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
-@bp.route('/_reconciled')
-@login_required
-def reconciled():
-    amount_list = []
-
-    ids = request.args #dict with key 'amount' & value amounts as string
-    str_id_list = ids.getlist('idArray[]')
-    id_list = [int(item) for item in str_id_list]
-    print(id_list)
-
-    test_dict = {
-        'id': None, 
-        'count': None, 
-        'txn_amount': None, 
-        'running_total': None
-    }
-
-    id_str_for_db = json.dumps(id_list)
-    # print('json dumps:', id_str_for_db, type(id_str_for_db))
-
-    #implement button click change
-    # on button click print SEND TOO
-
-    # for idd in id_list:
-    #     txn = Transactions.query.get(idd)
-    #     txn.reconciled = True
-    #     db.session.commit()
-    #     print(txn)
-
-
-    # txns = Transactions.query.all()
-    # for txn in txns:
-    #     print(txn)
-    #     txn.reconciled = False
-    #     db.session.commit()
-
-
-
-    this_one = request.args.get('txnAmount', 0, type=str)
-    sum_change = request.args.get('sumChange', 0, type=str)
-
-   
-    amount_list.append(float(sum_change))
-    running_total = sum(amount_list)
-    # print('reconciled running_total:', running_total)
-    # print('id list:', id_list)
-
-
-
-    test_summary_list = []
-    for count, item in enumerate(id_list, 1):
-        test_dict['count'] = count
-        test_dict['id'] = item
-        # db_amount = Transactions.query.get()
-        test_dict['txn_amount'] = None
-        test_dict['running_total'] = running_total
-        test_summary_list.append(test_dict)
-
-    # print(test_summary_list)
-    
-    return jsonify(result=None)
-
 @bp.route('/_reconciled_button')
 @login_required
 def reconciled_button():
@@ -676,6 +614,10 @@ def persist_checkboxes():
     # return jsonify(result=amount)
     return jsonify(result=0)
 
+
+'''
+end reconciliation
+'''
 # action = "/forward/"
 
 @bp.route('/index/<username>/popup', methods=['GET', 'POST'])
