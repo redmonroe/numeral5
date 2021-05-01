@@ -10,7 +10,7 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
                             TransactionCreationForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
-                        Transactions, User)
+                        Transactions, User, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
                    request, url_for)
 from flask_babel import _, get_locale
@@ -218,8 +218,6 @@ def transactions(username):
 
     r = Transactions.query.filter(Transactions.user_id == user.id).all()
 
-    for item in r:
-        print(item)
     # flash('congratulations, you deleted an account')
     # post/redirect/get pattern
     return render_template('main/transactions.html', username=username, items=r)
@@ -292,19 +290,65 @@ def deletedtxn(username, id, acct):
 
     r = Transactions.query.get(id)
 
-    referrer = request.referrer
-    print(referrer)
-
     db.session.delete(r)
     db.session.commit()
     db.session.close()
+    return redirect(route_utilities.my_redirect_url())
 
-    flash('congratulations, you deleted a transaction')
-    return redirect(url_for('main.register', username=username, id=acct))
 
 @bp.route('/edit_transaction/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def edit_transaction(username, id):
+
+    user = User.query.filter_by(username=username).first()
+
+    r = Transactions.query.filter(Transactions.user_id == user.id).all()
+
+    transaction = Transactions.query.get(id)
+
+    account_choice = Accounts.query.filter(Accounts.user_id == user.id).all()
+
+    account_list = [(item.id, item.acct_name) for item in account_choice]
+
+    # ''' code to create dynamic category list for form'''
+    category_choice = Categories.query.filter(
+        Categories.user_id == user.id).all()
+
+    cat_list = [(item.id, item.name) for item in category_choice]
+
+    form = EditTransactionForm(obj=transaction)
+    form.acct_id.choices = account_list
+    form.acct_id2.choices = account_list
+    form.cat_id.choices = cat_list
+
+    if form.validate_on_submit():
+
+        transaction.user_id = user.id
+        transaction.date = form.date.data
+        transaction.type = form.type.data
+        transaction.amount = form.amount.data
+        transaction.payee_name = form.payee_name.data
+        transaction.acct_id = form.acct_id.data
+        if transaction.type == 'transfer':
+            transaction.acct_id2 = form.acct_id2.data
+        else:
+            transaction.acct_id2 = None
+        transaction.cat_id = form.cat_id.data
+
+        db.session.commit()
+        db.session.close()
+        flash('congratulations, you edited this transaction')
+
+        # return redirect(route_utilities.my_redirect_url(referrer))
+        return redirect(url_for('main.transactions', username=username))
+
+    return render_template('main/edit_transaction.html', form=form)
+
+
+@bp.route('/edit_transaction_reconciliation/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def edit_transaction_reconciliation(username, id):
+
     
     user = User.query.filter_by(username=username).first()
 
@@ -326,8 +370,14 @@ def edit_transaction(username, id):
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list   
-    if form.validate_on_submit():
 
+    if form.validate_on_submit():
+    # continue_reconcile(username, rec_id)
+
+        reconciliation = Reconciliation.query.filter(Reconciliation.finalized == None).first()
+        print(reconciliation, reconciliation.id)
+        rec_id = reconciliation.id
+    
         transaction.user_id = user.id
         transaction.date = form.date.data
         transaction.type = form.type.data
@@ -343,8 +393,9 @@ def edit_transaction(username, id):
         db.session.commit()
         db.session.close()
         flash('congratulations, you edited this transaction')
-    #     # post/redirect/get pattern
-        return redirect(url_for('main.transactions', username=username))
+
+        # return redirect(route_utilities.my_redirect_url(referrer))
+        return redirect(url_for('main.continue_reconcile', username=username, rec_id=rec_id))
 
     return render_template('main/edit_transaction.html', form=form)
 

@@ -4,6 +4,11 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+<html>
+
+<head>        
+</head>
+<body>    
     <h1>edit transaction</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
@@ -55,6 +60,9 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p>{{ form.submit() }}</p>
-    </form>
-{% endblock %}
+            <div name="hidden-item" value="{{ form.referrer }}"></div>
+            <p>{{ form.submit() }}</p>
+        </form>
+        {% endblock %}
+    </body>
+</html>

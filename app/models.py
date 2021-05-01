@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from hashlib import md5
 from time import time
-from flask import current_app
+from flask import current_app, request, url_for
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -287,6 +287,14 @@ class Reports(object):
         # print(output_list_of_tuples)
 
         return output_list_of_tuples
+
+class route_utilities(object):
+
+    @staticmethod
+    def my_redirect_url(default='main.index', referrer=None):
+        print(referrer)
+        return request.referrer or url_for(default)
+
 
 @login.user_loader
 def load_user(id):

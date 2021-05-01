@@ -16,9 +16,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>    
     <script src="https://unpkg.com/bootstrap-table@1.18.2/dist/bootstrap-table.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
-    <script src="{{ url_for('static', filename='js/reconcile.js') }}" type="text/javascript"></script>
-
-   
+    <script src="{{ url_for('static', filename='js/reconcile.js') }}" type="text/javascript"></script>   
 
 </head>
 
@@ -77,7 +75,7 @@
                 <td>{{ item.cat_id }}</td>
                 <td>{{ item.amount2 }}</td>
                 <td>
-                    <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> 
+                    <a id='edit-btn' href="{{ url_for('main.edit_transaction_reconciliation', username=current_user.username, id=item.id) }}">edit</a> 
                     <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
 
                 </td>                        
