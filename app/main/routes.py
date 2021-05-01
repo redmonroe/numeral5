@@ -295,9 +295,9 @@ def deletedtxn(username, id, acct):
     referrer = request.referrer
     print(referrer)
 
-    # db.session.delete(r)
-    # db.session.commit()
-    # db.session.close()
+    db.session.delete(r)
+    db.session.commit()
+    db.session.close()
 
     flash('congratulations, you deleted a transaction')
     return redirect(url_for('main.register', username=username, id=acct))
