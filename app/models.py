@@ -8,14 +8,6 @@ import jwt
 from app import db, login
 from sqlalchemy import or_, and_
 
-
-# followers = db.Table(
-#     'followers',
-#     db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
-#     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
-# )
-
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -31,19 +23,6 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    # def avatar(self, size):
-    #     digest = md5(self.email.lower().encode('utf-8')).hexdigest()
-    #     return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
-    #         digest, size)
-
-    # def follow(self, user):
-    #     if not self.is_following(user):
-    #         self.followed.append(user)
-
-    # def unfollow(self, user):
-    #     if self.is_following(user):
-    #         self.followed.remove(user)
 
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode(
@@ -294,7 +273,6 @@ class route_utilities(object):
     def my_redirect_url(default='main.index', referrer=None):
         print(referrer)
         return request.referrer or url_for(default)
-
 
 @login.user_loader
 def load_user(id):
