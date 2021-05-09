@@ -227,7 +227,7 @@ def transactions(username):
 def create_transaction(username, id=None, lastpage=None):
     #username, #account_id
     
-    print(lastpage)
+    print('ct:', lastpage)
     user = User.query.filter_by(username=username).first()
 
     # ''' code to create dynamics account list for form'''
@@ -249,6 +249,7 @@ def create_transaction(username, id=None, lastpage=None):
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
     if form.validate_on_submit():
+        print('create txn after submit')
         new_transaction = Transactions()
         new_transaction.user_id = user.id
         new_transaction.date = form.date.data
@@ -267,9 +268,62 @@ def create_transaction(username, id=None, lastpage=None):
         db.session.close()
         flash('congratulations, you created a new transaction')
         # post/redirect/get pattern
-        return redirect(url_for('main.register', username=username, id=form.acct_id.data, page=lastpage))
+        return redirect(url_for('main.register', username=username, id=form.acct_id.data, lastpage=lastpage))
+
+    return render_template('main/create_transactions.html', form=form, lastpage=lastpage)
+
+
+@bp.route('/create_and_new/<username>/<lastpage>/', methods=['GET', 'POST'])
+@login_required
+def create_and_new(username, id=None, lastpage=None):
+    #username, #account_id
+
+    print('c&n:', lastpage)
+    user = User.query.filter_by(username=username).first()
+
+    # ''' code to create dynamics account list for form'''
+    account_choice = Accounts.query.filter(
+        Accounts.user_id == user.id).all()
+
+    account_list = [(item.id, item.acct_name) for item in account_choice]
+
+    # ''' code to create dynamic category list for form'''
+    category_choice = Categories.query.filter(
+        Categories.user_id == user.id).all()
+
+    cat_list = [(item.id, item.name) for item in category_choice]
+
+    # r = Categories.query.filter(Categories.user_id == user.id).all()
+
+    form = TransactionCreationForm()
+    form.acct_id.choices = account_list
+    form.acct_id2.choices = account_list
+    form.cat_id.choices = cat_list
+    if form.validate_on_submit():
+        print('create new after submit')
+        new_transaction = Transactions()
+        new_transaction.user_id = user.id
+        new_transaction.date = form.date.data
+        new_transaction.type = form.type.data
+        new_transaction.amount = form.amount.data
+        new_transaction.payee_name = form.payee_name.data
+        new_transaction.acct_id = form.acct_id.data
+        new_transaction.reconciled = False
+        if new_transaction.type == 'transfer':
+            new_transaction.acct_id2 = form.acct_id2.data
+        else:
+            new_transaction.acct_id2 = None
+        new_transaction.cat_id = form.cat_id.data
+        db.session.add(new_transaction)
+        db.session.commit()
+        db.session.close()
+        flash('congratulations, you created a new transaction')
+        # post/redirect/get pattern
+        return redirect(url_for('main.create_transaction', username=username, id=form.acct_id.data, lastpage=lastpage))
 
     return render_template('main/create_transactions.html', form=form)
+
+
 
 @bp.route('/delete_transaction/<username>', methods=['GET', 'POST'])
 @login_required
@@ -545,16 +599,20 @@ def adjust_reconciliation(username, rec_id):
 
     form = EditReconciliationForm(obj=reconciliation)
     if form.validate_on_submit():
-        reconciliation.create_date = datetime.utcnow()
-        reconciliation.user_id = user.id
+        # reconciliation.create_date = datetime.utcnow()
         reconciliation.start_date = form.start_date.data
         reconciliation.end_date = form.end_date.data
+        reconciliation.user_id = user.id
         reconciliation.prior_end_balance = form.prior_end_balance.data
         reconciliation.statement_end_bal = form.statement_end_bal.data
-        reconciliation.acct_id = id
+        # reconciliation.acct_id = id
+
+        db.session.commit()
+        db.session.close()
+
+        return redirect(url_for('main.view_reconciliations_by_account', username=username))
 
     return render_template('main/adjust_reconciliation.html', form=form)
-    #this comes from view rec by account
 
 @bp.route('/reconcile/<username>/<acct_id>', methods=['GET', 'POST'])
 @login_required

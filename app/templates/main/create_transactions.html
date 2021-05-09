@@ -5,10 +5,12 @@
 <head>
    
 </head>
+<body>
 
 {% block app_content %}
-    <h1>create transaction</h1>
+    <h1>create transaction {{ lastpage }}</h1>
     <form action="" method="post">
+     
         {{ form.hidden_tag() }}
         <p>
             {{ form.type.label }}<br>
@@ -46,27 +48,27 @@
             {% for error in form.acct_id.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-        </p>
- 
+        </p> 
         <p>
             
             {{ form.acct_id2.label }}<br>
             {{ form.acct_id2 }}<br>
             {% for error in form.acct_id2.errors %}
             <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-    
-        
+            {% endfor %}          
         </p>
-                <p>
             {{ form.cat_id.label }}<br>
             {{ form.cat_id }}<br>
             {% for error in form.cat_id.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p>{{ form.submit() }}</p>
+        <p><button class="btn btn-primary" action='{{ form.submit() }}'>submit</button></p>
+
+        <a class="btn btn-primary" action='{{ form.submit() }}' href="{{ url_for('main.create_and_new', username=current_user.username, lastpage=lastpage) }}">submit and new</a>
+        
        </form>
 {% endblock %}
+</body>
 </html>
 

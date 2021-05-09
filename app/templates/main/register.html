@@ -10,8 +10,9 @@
 
 </head>
 <body>
-    <h1>register, user id = {{ id }}, starting balance = {{ startbal.startbal }}, last page = {{ lastpage }}</h1>
-       <a href="{{ url_for('main.create_transaction', username=current_user.username, lastpage=lastpage) }}">create transactions</a>
+    <h3>register</h3>
+    <h4>starting balance = {{ startbal.startbal }}, last page = {{ lastpage }} current = {{ curbal }}</h4>
+       <a class='btn btn-primary' href="{{ url_for('main.create_transaction', username=current_user.username, lastpage=lastpage) }}">create transactions</a>
       <!-- {% for item in items %}
       <p>{{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('main.edit_transaction', username=current_user.username, id=item.id) }}">edit</a> <a href="{{ url_for('main.deletedtxn', username=current_user.username, id=item.id, acct=item.acct_id) }}">delete</a>
           
