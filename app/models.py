@@ -6,7 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from app import db, login
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, extract, between
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -199,27 +199,31 @@ class Reconciliation(db.Model):
         return username, results, startbal, curbal, prior_end_bal, rec_id, acct_id
 
 class Reports(object):
-    @staticmethod
-    def report_query(username, report_period=None, report_template=None, total=None):
-        from sqlalchemy import extract, and_
-      
 
-        # this is ALWAYS part of queyr
-        if report_period == 'year':
-            period = date.today().year
-        elif report_period == 'last month':
-            period = date.today().month - 1
-            report_period = 'month'
-            print(period)
-            # period = now.month-1 if now.month > 1 else 12
-        elif report_period == 'month':
-            period = date.today().month
+    @staticmethod
+    def report_query(username, report_period=None, start_date=None, end_date=None, report_template=None, total=None):
+        from psycopg2.extras import DateRange
 
         user = User.query.filter_by(username=username).first()
 
         queries = []
 
-        if report_template == 'default':
+        # this is ALWAYS part of query
+        if report_period == 'year':
+            period = date.today().year
+        elif report_period == 'last month':
+            period = date.today().month - 1
+            report_period = 'month'
+            # period = now.month-1 if now.month > 1 else 12
+        elif report_period == 'month':
+            period = date.today().month
+        elif report_period == 'custom':
+            queries.append(Transactions.user_id == user.id)
+            queries.append(Transactions.date.between(start_date, end_date))
+            display_period = DateRange(start_date, end_date)
+            print(display_period)   
+
+        if report_template == 'default' and report_period != 'custom':
             queries.append(Transactions.user_id == user.id)
             queries.append(extract(report_period, Transactions.date) == period)
         elif report_template == 'posted':

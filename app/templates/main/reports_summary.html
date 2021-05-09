@@ -8,39 +8,72 @@
     <title>Reports Summary</title>
 </head>
 <body>
-    <h1>Reports Summary</h1>
+    <h1>reports</h1>
 
         <form action="" method="post">
             <p> {{ report_period }} </p>
             {{ form.hidden_tag() }}
-            <p>
-                {{ form.report_period.label }}<br>
-                {{ form.report_period }}<br>
+            
+                {{ form.report_period.label }}
+                {{ form.report_period }}
                 {% for error in form.report_period.errors %}
                 <span style="color: red;">[{{ error }}]</span>
                 {% endfor %}
-            </p>
-            <p>
-                {{ form.report_template.label }}<br>
-                {{ form.report_template }}<br>
+
+                <div class="form group">
+                    {{ form.start_date.label }}
+                    {{ form.start_date(size=32) }}
+                    {% for error in form.start_date.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form group">
+                    {{ form.end_date.label }}
+                    {{ form.end_date(size=32) }}
+                    {% for error in form.end_date.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+           
+                {{ form.report_template.label }}
+                {{ form.report_template }}
                 {% for error in form.report_template.errors %}
                 <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </p>
-            <p>
-                {{ form.total_by_cat.label }}<br>
-                {{ form.total_by_cat }}<br>
+                {% endfor %}        
+
+
+
+                {{ form.total_by_cat.label }}
+                {{ form.total_by_cat }}
                 {% for error in form.total_by_cat.errors %}
                 <span style="color: red;">[{{ error }}]</span>
                 {% endfor %}
-            </p>
         <hr>
     <p>{{ form.submit() }}</p>
         </form>
-        {% for transaction in transactions %}
-        <br> {{ transaction[0] }} {{ transaction[1]}}
-        {% endfor %}
-    
+
+        
+        <table class="table table-striped" id="table" data-toggle="table" data-height="460">
+            <thead class='thead-dark'>
+                <tr>
+                    <th data-field="account" data-sortable="true" scope="col">
+                        <h4>account</h4>
+                    </th>
+                    <th data-field="amount" data-sortable="true">
+                        <h4>amount</h4>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction[0] }}</td>
+                    <td>{{ transaction[1] }}</td>        
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 </body>
 </html>
 {% endblock %}

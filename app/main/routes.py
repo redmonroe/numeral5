@@ -750,9 +750,13 @@ def reports(username):
     if form.validate_on_submit():
         report_period = form.report_period.data
         report_template = form.report_template.data
+        if report_period == 'custom':
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+
         total = form.total_by_cat.data
 
-        output_list_of_tuples = Reports.report_query(username=username, report_template=report_template, report_period=report_period, total=total) 
+        output_list_of_tuples = Reports.report_query(username=username, start_date=start_date,end_date=end_date, report_template=report_template, report_period=report_period, total=total) 
 
         flash('lily-livered sumbitch')
 
