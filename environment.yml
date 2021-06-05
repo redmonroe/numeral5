@@ -1,5 +1,5 @@
-name: myenv
-channels:
-  - conda-forge
-dependencies:
-  - python=3.8
+# name: myenv
+# channels:
+#   - conda-forge
+# dependencies:
+#   - python=3.8
