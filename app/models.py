@@ -73,7 +73,8 @@ class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Date)
     amount = db.Column(db.Numeric)
-    payee_name = db.Column(db.String) # would become own column
+    vendor_name = db.Column(db.String)
+    payee_name = db.Column(db.String) 
     type = db.Column(db.String)
     cat_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     cat_id2 = db.Column(db.Integer, db.ForeignKey('categories.id'))
@@ -87,6 +88,30 @@ class Transactions(db.Model):
 
     def __repr__ (self):
         return f"transaction: {self.id} {self.reconciled}"
+
+    def import_for_fuckup(self):
+        import csv
+        import re
+
+        return_list = []
+        tup = ()
+        with open (r'db_backups/ccc1.csv') as csvfile1:
+            ninereader = csv.reader(csvfile1)
+            for line in ninereader:
+                if line[0] != '':
+                    try: 
+                        tup = (int(line[0]), line[3])
+                        return_list.append(tup)
+                    except ValueError as e:
+                        print(e, 'for id, jw error code')
+
+            # for line in return_list:
+            #     print(type(line[0]))
+
+        return return_list
+         
+
+
 
     def get_current_balance(id): # must include transfers (as opposed to transaction journals which don't)
         from decimal import Decimal
@@ -126,7 +151,6 @@ class Transactions(db.Model):
 
 class Reconciliation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    create_date = db.Column(db.DateTime)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     prior_end_balance = db.Column(db.Numeric)
@@ -281,3 +305,6 @@ class route_utilities(object):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+trans = Transactions()
+trans.import_for_fuckup()

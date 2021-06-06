@@ -36,9 +36,9 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.payee_name.label }}<br>
-            {{ form.payee_name(size=32) }}<br>
-            {% for error in form.payee_name.errors %}
+            {{ form.vendor.label }}<br>
+            {{ form.vendor(size=32) }}<br>
+            {% for error in form.vendor.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

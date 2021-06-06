@@ -242,12 +242,20 @@ def create_transaction(username, id=None, lastpage=None):
 
     cat_list = [(item.id, item.name) for item in category_choice]
 
+    # code to create dynmic vendor list for form
+    # vendor_choice = Vendors.query.filter(
+    #     Vendors.user_id == user.id).all()
+
+    # vend_list = [(item.id, item.acct_name) for item in vendor_choice]
+    
+
     # r = Categories.query.filter(Categories.user_id == user.id).all()
 
     form = TransactionCreationForm()
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
+    form.vendor.choices = vend_list
     if form.validate_on_submit():
         print('create txn after submit')
         new_transaction = Transactions()
@@ -255,7 +263,7 @@ def create_transaction(username, id=None, lastpage=None):
         new_transaction.date = form.date.data
         new_transaction.type = form.type.data
         new_transaction.amount = form.amount.data
-        new_transaction.payee_name = form.payee_name.data
+        new_transaction.vendor = form.vendor.data
         new_transaction.acct_id = form.acct_id.data
         new_transaction.reconciled = False
         if new_transaction.type == 'transfer':
@@ -799,10 +807,18 @@ def reports(username):
 @bp.route('/import')
 def import_thing():
 
-    txns = Transactions.query.all()
+    trans = Transactions()
+    return_list = trans.import_for_fuckup()
+    for txn in Transactions.query.all():
+        for item in return_list:
+            if txn.id == item[0]:
+                print(txn.id, item[0], item[1])
+                txn.payee_name = item[1]
+                db.session.commit()
 
-    for item in txns:
-        print(item.reconciled)
+
+    # for item in txns:
+        # print(item.reconciled)
         # db.session.commit()
 
     # filename = 'category_list_for_load_category_function.csv'
@@ -819,8 +835,8 @@ def import_thing():
     #         c.user_id = 1
     #         # db.session.add(c)
     #         db.session.commit()
-    return redirect(url_for('main.index'))
-
+    # return redirect(url_for('main.index'))
+    return 'try again'
 
 '''db management'''
 @bp.route('/createdb')
