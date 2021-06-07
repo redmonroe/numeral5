@@ -198,6 +198,14 @@ class Reconciliation(db.Model):
         
         return username, results, startbal, curbal, prior_end_bal, rec_id, acct_id
 
+class Vendors(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    vendor_name = db.Column(db.String) # would become own column
+
+    def one_time_copy_and_collate():
+        for item in Transactions.query.all():
+            print(item.payee_name)
+
 class Reports(object):
 
     @staticmethod

@@ -10,7 +10,7 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
                             TransactionCreationForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
-                        Transactions, User, route_utilities)
+                        Transactions, User, Vendors, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
                    request, url_for)
 from flask_babel import _, get_locale
@@ -799,27 +799,23 @@ def reports(username):
 @bp.route('/import')
 def import_thing():
 
-    txns = Transactions.query.all()
+    payee_name_list = []
+    for item in Transactions.query.all():
+        print(item.payee_name)
+        payee_name_list.append(item.payee_name)
 
-    for item in txns:
-        print(item.reconciled)
-        # db.session.commit()
+    new_set = set()
+    new_set = set(payee_name_list)
 
-    # filename = 'category_list_for_load_category_function.csv'
-    # with open(filename, 'rt') as f:
-    #     username = 'joe'
-    #     header = next(f)
-    #     cats = []
-    #     for line in f:
-    #         print(line)
-    #         c = Categories()
-    #         nl = line.split(',')
-    #         c.name = nl[1]
-    #         c.inorex = nl[2].strip()
-    #         c.user_id = 1
-    #         # db.session.add(c)
-    #         db.session.commit()
-    return redirect(url_for('main.index'))
+    for item in new_set:
+        vend = Vendors()
+        vend.vendor_name = item
+        db.session.add(vend)
+        db.session.commit()
+    
+    db.session.close()
+
+    return 'ok'
 
 
 '''db management'''

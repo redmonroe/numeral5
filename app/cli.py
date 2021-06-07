@@ -33,3 +33,9 @@ def register(app):
         """Compile all languages."""
         if os.system('pybabel compile -d app/translations'):
             raise RuntimeError('compile command failed')
+
+
+    @app.cli.command()
+    def test():
+        for item in Transactions.query.all():
+            print(item)
