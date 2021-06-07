@@ -769,40 +769,6 @@ def reports(username):
 
     return render_template('main/reports_summary.html', username=username, form=form)
 
-
-# '''
-
-# start_bal = s.query(Accounts).filter(
-#         Accounts.id == account_to_reconcile).first()
-
-# starting_balance = Decimal(start_bal.startbal)
-
-# start = prior_month_end_bal
-# print('---' * 30)
-# for item in stuff_check:
-#     """if matching account is is acct_id then use amount, else use amount2"""
-#     if item.acct_id == account_to_reconcile:
-#         run_bal = start + item.amount
-#         print(item, run_bal)
-#         start = run_bal
-#     elif item.acct_id2 == account_to_reconcile:
-#         run_bal = start + item.amount2
-#         print(item, run_bal)
-#         start = run_bal
-
-
-# discrepancy = 0        
-# acct_end_bal = start
-# discrepancy = acct_end_bal - statement_end_bal
-
-# print(f'\nCurrent difference {discrepancy}.')
-
-# print(f'\nShowing items from account {account_to_reconcile} from {strt_dt} to {end_dt}.\n')
-
-# throwaway view to run a function within context of app
-
-<<<<<<< HEAD
-=======
 @bp.route('/import')
 def import_thing():
 
@@ -823,7 +789,6 @@ def import_thing():
     db.session.close()
 
     return 'ok'
->>>>>>> feature-vendor-model
 
 
 '''db management'''
