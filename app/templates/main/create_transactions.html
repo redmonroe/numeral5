@@ -8,7 +8,7 @@
 <body>
 
 {% block app_content %}
-    <h1>create transaction {{ lastpage }}</h1>
+    <h1>create transaction lastpage: {{ lastpage }} id: {{ id }}</h1>
     <form action="" method="post">
      
         {{ form.hidden_tag() }}
@@ -36,9 +36,9 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.vendor.label }}<br>
-            {{ form.vendor(size=32) }}<br>
-            {% for error in form.vendor.errors %}
+            {{ form.payee_name.label }}<br>
+            {{ form.payee_name(size=32) }}<br>
+            {% for error in form.payee_name.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
@@ -63,9 +63,7 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p><button class="btn btn-primary" action='{{ form.submit() }}'>submit</button></p>
-
-        <a class="btn btn-primary" action='{{ form.submit() }}' href="{{ url_for('main.create_and_new', username=current_user.username, lastpage=lastpage) }}">submit and new</a>
+        <p><button class="btn btn-primary" action='{{ form.submit() }}'>submit</button></p
         
        </form>
 {% endblock %}

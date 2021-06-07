@@ -218,8 +218,6 @@ def transactions(username):
 
     r = Transactions.query.filter(Transactions.user_id == user.id).all()
 
-    # flash('congratulations, you deleted an account')
-    # post/redirect/get pattern
     return render_template('main/transactions.html', username=username, items=r)
 
 @bp.route('/create_transaction/<username>/<lastpage>/', methods=['GET', 'POST'])
@@ -255,7 +253,7 @@ def create_transaction(username, id=None, lastpage=None):
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
-    form.vendor.choices = vend_list
+    # form.vendor.choices = vend_list
     if form.validate_on_submit():
         print('create txn after submit')
         new_transaction = Transactions()
@@ -263,7 +261,7 @@ def create_transaction(username, id=None, lastpage=None):
         new_transaction.date = form.date.data
         new_transaction.type = form.type.data
         new_transaction.amount = form.amount.data
-        new_transaction.vendor = form.vendor.data
+        new_transaction.payee_name = form.payee_name.data
         new_transaction.acct_id = form.acct_id.data
         new_transaction.reconciled = False
         if new_transaction.type == 'transfer':
@@ -275,11 +273,11 @@ def create_transaction(username, id=None, lastpage=None):
         db.session.commit()
         db.session.close()
         flash('congratulations, you created a new transaction')
-        # post/redirect/get pattern
+    
         return redirect(url_for('main.register', username=username, id=form.acct_id.data, lastpage=lastpage))
+        # acct_id=new_transaction.acct_id, 
 
     return render_template('main/create_transactions.html', form=form, lastpage=lastpage)
-
 
 @bp.route('/create_and_new/<username>/<lastpage>/', methods=['GET', 'POST'])
 @login_required
@@ -332,7 +330,6 @@ def create_and_new(username, id=None, lastpage=None):
     return render_template('main/create_transactions.html', form=form)
 
 
-
 @bp.route('/delete_transaction/<username>', methods=['GET', 'POST'])
 @login_required
 def delete_transaction(username):
@@ -362,6 +359,8 @@ def deletedtxn(username, id, acct):
 @login_required
 def edit_transaction(username, id):
 
+
+    print('ct:', lastpage)
     user = User.query.filter_by(username=username).first()
 
     r = Transactions.query.filter(Transactions.user_id == user.id).all()
@@ -402,7 +401,7 @@ def edit_transaction(username, id):
         flash('congratulations, you edited this transaction')
 
         # return redirect(route_utilities.my_redirect_url(referrer))
-        return redirect(url_for('main.transactions', username=username))
+        return redirect(url_for('main.register', username=username, id=form.acct_id.data))
 
     return render_template('main/edit_transaction.html', form=form)
 
@@ -480,9 +479,7 @@ def register(username, id):
 
     results = Transactions.query.filter(or_filter) 
 
-    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)
-
-    
+    results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)    
         
     curbal, startbal = Transactions.get_current_balance(id)
 
@@ -804,39 +801,7 @@ def reports(username):
 
 # throwaway view to run a function within context of app
 
-@bp.route('/import')
-def import_thing():
 
-    trans = Transactions()
-    return_list = trans.import_for_fuckup()
-    for txn in Transactions.query.all():
-        for item in return_list:
-            if txn.id == item[0]:
-                print(txn.id, item[0], item[1])
-                txn.payee_name = item[1]
-                db.session.commit()
-
-
-    # for item in txns:
-        # print(item.reconciled)
-        # db.session.commit()
-
-    # filename = 'category_list_for_load_category_function.csv'
-    # with open(filename, 'rt') as f:
-    #     username = 'joe'
-    #     header = next(f)
-    #     cats = []
-    #     for line in f:
-    #         print(line)
-    #         c = Categories()
-    #         nl = line.split(',')
-    #         c.name = nl[1]
-    #         c.inorex = nl[2].strip()
-    #         c.user_id = 1
-    #         # db.session.add(c)
-    #         db.session.commit()
-    # return redirect(url_for('main.index'))
-    return 'try again'
 
 '''db management'''
 @bp.route('/createdb')
