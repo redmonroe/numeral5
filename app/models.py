@@ -201,7 +201,8 @@ class Reconciliation(db.Model):
 class Vendors(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     vendor_name = db.Column(db.String) # would become own column
-
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
     def one_time_copy_and_collate():
         for item in Transactions.query.all():
             print(item.payee_name)

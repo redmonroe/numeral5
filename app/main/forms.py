@@ -35,7 +35,7 @@ class TransactionCreationForm(FlaskForm):
     type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer'), ('notposted', 'notposted')])
 
     amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
-    payee_name = StringField('payee name')
+    payee_name = SelectField('payee name')
     acct_id = SelectField('distribution account?', validators=[DataRequired()])
     acct_id2 = SelectField('transfer account?')
     cat_id = SelectField('category?')

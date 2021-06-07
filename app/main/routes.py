@@ -242,12 +242,16 @@ def create_transaction(username, id=None, lastpage=None):
 
     cat_list = [(item.id, item.name) for item in category_choice]
 
-    # r = Categories.query.filter(Categories.user_id == user.id).all()
+    # ''' code to create dynamic vendor list
+    vendor_choice = Vendors.query.filter(Vendors.user_id == user.id).all()
+
+    vendor_list = [(item.id, item.vendor_name) for item in vendor_choice]
 
     form = TransactionCreationForm()
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
+    form.payee_name.choices = vendor_list
     if form.validate_on_submit():
         print('create txn after submit')
         new_transaction = Transactions()
