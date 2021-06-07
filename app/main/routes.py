@@ -10,7 +10,7 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
                             TransactionCreationForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
-                        Transactions, User, route_utilities)
+                        Transactions, User, Vendors, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
                    request, url_for)
 from flask_babel import _, get_locale
@@ -801,6 +801,29 @@ def reports(username):
 
 # throwaway view to run a function within context of app
 
+<<<<<<< HEAD
+=======
+@bp.route('/import')
+def import_thing():
+
+    payee_name_list = []
+    for item in Transactions.query.all():
+        print(item.payee_name)
+        payee_name_list.append(item.payee_name)
+
+    new_set = set()
+    new_set = set(payee_name_list)
+
+    for item in new_set:
+        vend = Vendors()
+        vend.vendor_name = item
+        db.session.add(vend)
+        db.session.commit()
+    
+    db.session.close()
+
+    return 'ok'
+>>>>>>> feature-vendor-model
 
 
 '''db management'''
