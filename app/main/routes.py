@@ -458,7 +458,7 @@ def edit_transaction_reconciliation(username, id):
 
 @bp.route('/register/<username>/<id>', methods=['GET', 'POST'])
 @login_required
-def register(username, id):
+def register(username, id): 
     from sqlalchemy import and_, or_
     
     user = User.query.filter_by(username=username).first()
@@ -473,9 +473,18 @@ def register(username, id):
 
     or_filter = or_(*filter_args)
 
-    results = Transactions.query.filter(or_filter) 
+    results = Transactions.query.filter(or_filter).join(Categories, Transactions.cat_id==Categories.id)\
+        .add_columns(Categories.name, Transactions.date, Transactions.payee_name, Transactions.amount, Transactions.reconciled, Transactions.type, Transactions.amount2, Transactions.id, Transactions.acct_id)
+        # .add_columns(Transactions.date)
+    # \
+    #     .join(Categories, Transactions.cat_id==Categories.id)\
+    #     .add_columns(Categories.name)
+
 
     results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)    
+    
+    for item in results.items:
+        print(item)
         
     curbal, startbal = Transactions.get_current_balance(id)
 
