@@ -34,12 +34,7 @@ class TransactionCreationForm(FlaskForm):
     # date = DateField('date', validators=[DataRequired()])
     type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer'), ('notposted', 'notposted')])
     amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
-<<<<<<< HEAD
-    payee_name = StringField('payee name')
-    # vendor = SelectField('vendor')
-=======
     payee_name = SelectField('payee name')
->>>>>>> feature-vendor-model
     acct_id = SelectField('distribution account?', validators=[DataRequired()])
     acct_id2 = SelectField('transfer account?')
     cat_id = SelectField('category?')
@@ -67,29 +62,3 @@ class ReportSelectForm(FlaskForm):
     end_date = DateField('end')
     submit = SubmitField('generate report')
 
-'''
-class EditProfileForm(FlaskForm):
-    username = StringField(_l('Username'), validators=[DataRequired()])
-    about_me = TextAreaField(_l('About me'),
-                             validators=[Length(min=0, max=140)])
-    submit = SubmitField(_l('Submit'))
-
-    def __init__(self, original_username, *args, **kwargs):
-        super(EditProfileForm, self).__init__(*args, **kwargs)
-        self.original_username = original_username
-
-    def validate_username(self, username):
-        if username.data != self.original_username:
-            user = User.query.filter_by(username=self.username.data).first()
-            if user is not None:
-                raise ValidationError(_('Please use a different username.'))
-
-
-class EmptyForm(FlaskForm):
-    submit = SubmitField('Submit')
-
-
-class PostForm(FlaskForm):
-    post = TextAreaField(_l('Say something'), validators=[DataRequired()])
-    submit = SubmitField(_l('Submit'))
-    '''

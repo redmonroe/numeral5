@@ -73,7 +73,7 @@ class Transactions(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Date)
     amount = db.Column(db.Numeric)
-    vendor_name = db.Column(db.String)
+    # vendor_name = db.Column(db.String)
     payee_name = db.Column(db.String) 
     type = db.Column(db.String)
     cat_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
