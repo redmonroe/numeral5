@@ -8,7 +8,7 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EditAccountForm, EditCategoryForm,
                             EditReconciliationForm, EditTransactionForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
-                            TransactionCreationForm)
+                            TransactionCreationForm, VendorCreationForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
                         Transactions, User, Vendors, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
@@ -799,6 +799,65 @@ def vendors(username):
     r = Vendors.query.filter(Vendors.user_id == user.id).all()
 
     return render_template('main/vendors.html', username=username, items=r)
+
+@bp.route('/create_vendor/<username>/', methods=['GET', 'POST'])
+@login_required
+def create_vendor(username):
+
+    user = User.query.filter_by(username=username).first()
+
+    r = Vendors.query.filter(Vendors.user_id == user.id).all()
+
+    form = VendorCreationForm()
+    if form.validate_on_submit():
+        new_vendor = Vendors()
+        new_vendor.vendor_name = form.vendor_name.data
+        new_vendor.user_id = user.id
+        db.session.add(new_vendor)
+        db.session.commit()
+        flash('congratulations, you created a new vendor')
+        return redirect(url_for('main.vendors', username=username))
+    return render_template('main/create_vendor.html', form=form)
+
+@bp.route('/delete_vendor/<username>/<vendor_id>', methods=['GET', 'POST'])
+@login_required
+def delete_vendor(username, vendor_id):
+
+    user = User.query.filter_by(username=username).first()
+
+    r = Vendors.query.get(vendor_id)
+    print(r)
+    db.session.delete(r)
+    db.session.commit()
+    flash('congratulations, you deleted a vendor')
+    return redirect(url_for('main.vendors', username=username))
+
+'''
+@bp.route('/deleted/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def deleted(username, id):
+
+    user = User.query.filter_by(username=username).first()
+
+    r = Accounts.query.get(id)
+
+    db.session.delete(r)
+    db.session.commit()
+
+    # post/redirect/get pattern
+    return redirect(url_for('main.accounts', username=username))
+
+@bp.route('/edit_account/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def edit_ac
+'''
+
+
+
+
+
+
+
 
 
 '''db management'''

@@ -62,3 +62,15 @@ class ReportSelectForm(FlaskForm):
     end_date = DateField('end')
     submit = SubmitField('generate report')
 
+class ReportSelectForm(FlaskForm):
+    report_period = SelectField('report period', choices=[('year', 'year'), ('month', 'month'), ('last month', 'last month'), ('custom', 'custom')])
+    report_template = SelectField('report template', choices=[('default', 'get all in period'), ('posted', 'posted only')])
+    total_by_cat = SelectField('total by category', choices=[(True, 'yes'), (False, 'no')])
+    # if report_period == 'custom':
+    start_date = DateField('start')
+    end_date = DateField('end')
+    submit = SubmitField('generate report')
+
+class VendorCreationForm(FlaskForm):
+    vendor_name = StringField('vendor name')
+    submit = SubmitField('create new vendor')

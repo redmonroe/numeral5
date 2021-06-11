@@ -1,38 +1,53 @@
-{% extends 'base.html' %}
-{% import 'bootstrap/wtf.html' as wtf %}
-
-{% block app_content %}
-    <h1>create account</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.acct_name.label }}<br>
-            {{ form.acct_name(size=32) }}<br>
-            {% for error in form.acct_name.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.startbal.label }}<br>
-            {{ form.startbal(size=64) }}<br>
-            {% for error in form.startbal.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.type.label }}<br>
-            {{ form.type(size=32) }}<br>
-            {% for error in form.type.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.status.label }}<br>
-            {{ form.status(size=32) }}<br>
-            {% for error in form.status.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
-{% endblock %}
+<!DOCTYPE html>
+{% extends 'base.html' %} {% import 'bootstrap/wtf.html' as wtf %} {% block
+app_content %}
+<html>
+  <head>
+    <style>
+      h1 {
+        text-align: left;
+      }
+      p {
+        text-align: left;
+      }
+      div {
+        text-align: left;
+      }
+    </style>
+    <title>chart of accounts</title>
+  </head>
+  <h1>create account</h1>
+  <form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+      {{ form.acct_name.label }}<br />
+      {{ form.acct_name(size=32) }}<br />
+      {% for error in form.acct_name.errors %}
+      <span style="color: red">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>
+      {{ form.startbal.label }}<br />
+      {{ form.startbal(size=64) }}<br />
+      {% for error in form.startbal.errors %}
+      <span style="color: red">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>
+      {{ form.type.label }}<br />
+      {{ form.type(size=32) }}<br />
+      {% for error in form.type.errors %}
+      <span style="color: red">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>
+      {{ form.status.label }}<br />
+      {{ form.status(size=32) }}<br />
+      {% for error in form.status.errors %}
+      <span style="color: red">[{{ error }}]</span>
+      {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+  </form>
+  {% endblock %}
+</html>
