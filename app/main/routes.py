@@ -790,6 +790,16 @@ def import_thing():
 
     return 'ok'
 
+'''vendors'''
+@bp.route('/vendors/<username>', methods=['GET', 'POST'])
+@login_required
+def vendors(username):
+    user = User.query.filter_by(username=username).first()
+
+    r = Vendors.query.filter(Vendors.user_id == user.id).all()
+
+    return render_template('main/vendors.html', username=username, items=r)
+
 
 '''db management'''
 @bp.route('/createdb')

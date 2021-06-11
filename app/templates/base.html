@@ -16,6 +16,7 @@
                 </button>
                 <a class="navbar-brand" href="{{ url_for('main.index', username=current_user.username) }}">numeral5</a>
                 <a class="navbar-brand" href="{{ url_for('main.accounts', username=current_user.username) }}">accounts</a>
+                 <a class="navbar-brand" href="{{ url_for('main.vendors', username=current_user.username) }}">vendors</a>
                 <a class="navbar-brand" href="{{ url_for('main.categories', username=current_user.username) }}">categories</a>
                 <a class="navbar-brand" href="{{ url_for('main.transactions', username=current_user.username) }}">transactions</a>
                 <a class="navbar-brand" href="{{ url_for('main.view_reconciliations_by_account', username=current_user.username) }}">reconciliations</a>
