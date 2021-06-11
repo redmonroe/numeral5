@@ -8,7 +8,7 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EditAccountForm, EditCategoryForm,
                             EditReconciliationForm, EditTransactionForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
-                            TransactionCreationForm, VendorCreationForm)
+                            TransactionCreationForm, VendorCreationForm, EditVendorForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
                         Transactions, User, Vendors, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
@@ -832,26 +832,24 @@ def delete_vendor(username, vendor_id):
     flash('congratulations, you deleted a vendor')
     return redirect(url_for('main.vendors', username=username))
 
-'''
-@bp.route('/deleted/<username>/<id>', methods=['GET', 'POST'])
+@bp.route('/edit_vendor/<username>/<vendor_id>', methods=['GET', 'POST'])
 @login_required
-def deleted(username, id):
+def edit_vendor(username, vendor_id):
 
     user = User.query.filter_by(username=username).first()
 
-    r = Accounts.query.get(id)
+    r = Vendors.query.filter(Vendors.user_id == user.id).all()
 
-    db.session.delete(r)
-    db.session.commit()
+    vendor = Vendors.query.get(vendor_id)
 
-    # post/redirect/get pattern
-    return redirect(url_for('main.accounts', username=username))
-
-@bp.route('/edit_account/<username>/<id>', methods=['GET', 'POST'])
-@login_required
-def edit_ac
-'''
-
+    form = EditVendorForm(obj=vendor)
+    if form.validate_on_submit():
+        vendor.vendor_name = form.vendor_name.data
+        db.session.commit()
+        db.session.close()
+        flash('congratulations, you created a new vendor')
+        return redirect(url_for('main.vendors', username=username))
+    return render_template('main/edit_vendor.html', form=form)
 
 
 

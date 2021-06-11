@@ -74,3 +74,6 @@ class ReportSelectForm(FlaskForm):
 class VendorCreationForm(FlaskForm):
     vendor_name = StringField('vendor name')
     submit = SubmitField('create new vendor')
+
+class EditVendorForm(VendorCreationForm):
+    pass
