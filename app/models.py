@@ -138,6 +138,7 @@ class Reconciliation(db.Model):
     checkboxjsn = db.Column(db.String)
     count = db.Column(db.String)
     is_first = db.Column(db.Boolean)
+    create_date = db.Column(db.DateTime)
 
     def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None, style=None):
 

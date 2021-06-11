@@ -451,7 +451,6 @@ def edit_transaction_reconciliation(username, id):
         db.session.close()
         flash('congratulations, you edited this transaction')
 
-        # return redirect(route_utilities.my_redirect_url(referrer))
         return redirect(url_for('main.continue_reconcile', username=username, rec_id=rec_id))
 
     return render_template('main/edit_transaction.html', form=form)
@@ -475,10 +474,6 @@ def register(username, id):
 
     results = Transactions.query.filter(or_filter).join(Categories, Transactions.cat_id==Categories.id)\
         .add_columns(Categories.name, Transactions.date, Transactions.payee_name, Transactions.amount, Transactions.reconciled, Transactions.type, Transactions.amount2, Transactions.id, Transactions.acct_id)
-        # .add_columns(Transactions.date)
-    # \
-    #     .join(Categories, Transactions.cat_id==Categories.id)\
-    #     .add_columns(Categories.name)
 
 
     results = results.order_by(Transactions.date.asc()).paginate(page, current_app.config['ITEMS_PER_PAGE'], False)    
