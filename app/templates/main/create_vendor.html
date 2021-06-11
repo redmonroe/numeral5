@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %} {% import 'bootstrap/wtf.html' as wtf %} {% block
+app_content %}
+<html>
+  <head> </head>
+  <body>
+    <h1>create account</h1>
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      <p>
+        {{ form.vendor_name.label }}<br />
+        {{ form.vendor_name(size=32) }}<br />
+        {% for error in form.vendor_name.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>{{ form.submit() }}</p>
+    </form>
+    {% endblock %}
+  </body>
+</html>

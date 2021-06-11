@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<html>
+<head>
+    <title>vendors</title>
+</head>
+<body>
+    <h1>vendors</h1>
+      <a class="btn btn-primary"
+      href="{{ url_for('main.create_vendor', username=current_user.username) }}"
+      >create vendor</a
+    >
+
+    {% for item in items %}
+    <p>{{ item.vendor_name }} {{ item.user_id }} <a class="page-link" href="{{ url_for('main.delete_vendor', username=current_user.username, vendor_id=item.id) }}">delete vendor</a>
+    <a class="page-link" href="{{ url_for('main.edit_vendor', username=current_user.username, vendor_id=item.id) }}">edit vendor</a>
+        <hr>
+    {% endfor %}
+    <ul class="pagination">
+      {% if items.has_prev %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('main.vendors', username=current_user.username, page=items.prev_num) }}">Previous</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+    {% endif %}
+
+    {% if items.has_next %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('main.vendors', username=current_user.username, page=items.next_num) }}">Next</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+    {% endif %}
+    </form>
+
+  
+</body>
+</html>
+{% endblock %}
