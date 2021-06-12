@@ -739,56 +739,6 @@ def persist_checkboxes():
 '''
 end reconciliation
 '''
-# action = "/forward/"
-
-@bp.route('/index/<username>/popup', methods=['GET', 'POST'])
-@login_required
-def user_popup(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    form = EmptyForm()
-    return render_template('user_popup.html', user=user, form=form)
-
-@bp.route('/reports/<username>/', methods=['GET', 'POST'])
-@login_required
-def reports(username):
-    form = ReportSelectForm()
-    if form.validate_on_submit():
-        report_period = form.report_period.data
-        report_template = form.report_template.data
-        if report_period == 'custom':
-            start_date = form.start_date.data
-            end_date = form.end_date.data
-
-        total = form.total_by_cat.data
-
-        output_list_of_tuples = Reports.report_query(username=username, start_date=start_date,end_date=end_date, report_template=report_template, report_period=report_period, total=total) 
-
-        flash('lily-livered sumbitch')
-
-        return render_template('main/reports_summary.html', username=username, form=form, transactions=output_list_of_tuples, report_period=report_period)
-
-    return render_template('main/reports_summary.html', username=username, form=form)
-
-@bp.route('/import')
-def import_thing():
-
-    payee_name_list = []
-    for item in Transactions.query.all():
-        print(item.payee_name)
-        payee_name_list.append(item.payee_name)
-
-    new_set = set()
-    new_set = set(payee_name_list)
-
-    for item in new_set:
-        vend = Vendors()
-        vend.vendor_name = item
-        db.session.add(vend)
-        db.session.commit()
-    
-    db.session.close()
-
-    return 'ok'
 
 '''vendors'''
 @bp.route('/vendors/<username>', methods=['GET', 'POST'])
@@ -851,13 +801,6 @@ def edit_vendor(username, vendor_id):
         return redirect(url_for('main.vendors', username=username))
     return render_template('main/edit_vendor.html', form=form)
 
-
-
-
-
-
-
-
 '''db management'''
 @bp.route('/createdb')
 def createdb():
@@ -879,3 +822,56 @@ def dumpdb():
 
     pg_dump_one()
     return 'dumping db to db_backups'
+
+@bp.route('/index/<username>/popup', methods=['GET', 'POST'])
+@login_required
+def user_popup(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    form = EmptyForm()
+    return render_template('user_popup.html', user=user, form=form)
+
+@bp.route('/reports/<username>/', methods=['GET', 'POST'])
+@login_required
+def reports(username):
+    form = ReportSelectForm()
+    if form.validate_on_submit():
+        report_period = form.report_period.data
+        report_template = form.report_template.data
+        if report_period == 'custom':
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+
+        total = form.total_by_cat.data
+
+        output_list_of_tuples = Reports.report_query(username=username, start_date=start_date,end_date=end_date, report_template=report_template, report_period=report_period, total=total) 
+
+        flash('lily-livered sumbitch')
+
+        return render_template('main/reports_summary.html', username=username, form=form, transactions=output_list_of_tuples, report_period=report_period)
+
+    return render_template('main/reports_summary.html', username=username, form=form)
+
+@bp.route('/import')
+def import_thing():
+
+    payee_name_list = []
+    for item in Transactions.query.all():
+        print(item.payee_name)
+        payee_name_list.append(item.payee_name)
+
+    new_set = set()
+    new_set = set(payee_name_list)
+
+    for item in new_set:
+        vend = Vendors()
+        vend.vendor_name = item
+        db.session.add(vend)
+        db.session.commit()
+    
+    db.session.close()
+
+    return 'ok'
+
+@bp.route('/practice', methods=['GET', 'POST'])
+def practice():
+    return render_template('main/practice.html')
