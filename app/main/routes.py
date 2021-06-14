@@ -552,10 +552,10 @@ def start_reconciliation(username, acct_id):
         # if no previous reconciliation then use Account.startbal
         account = Accounts.query.get(acct_id)
         print('first reconciliation for this account', account.startbal_str)
-        form = ReconciliationForm(prior_end_balance=10)
-        # form = ReconciliationForm(prior_end_balance=account.startbal_str)
+        # form = ReconciliationForm(prior_end_balance=10)
+        form = ReconciliationForm(prior_end_bal_str=account.startbal_str)
         # print(form.prior_ending_ba)
-    elif result.finalized == None: # this branch is for if continuing last reconciliation if 
+    elif result.finalized == None: # this branch is for if continuing last reconciliation, that is, if reconciliation is started but finalized=FALSE
         target_rec = Reconciliation.query.get(result.id)  # picks up with selected rec_id
 
         user = User.query.filter_by(username=username).first()
@@ -567,14 +567,14 @@ def start_reconciliation(username, acct_id):
         username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(
             target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
-        return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+        return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
     else:
         # this branch is for starting a new reconciliation & pre-filling the columns
         #add one day to last end date
         legacy_end_date = result.end_date
         adjusted_start_date = legacy_end_date + timedelta(1)
-        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_bal_str=result.statement_end_bal_str)
 
 
     if form.validate_on_submit():
@@ -583,8 +583,8 @@ def start_reconciliation(username, acct_id):
         new_reconciliation.user_id = user.id
         new_reconciliation.start_date = form.start_date.data
         new_reconciliation.end_date = form.end_date.data
-        new_reconciliation.prior_end_balance = form.prior_end_balance.data
-        new_reconciliation.statement_end_bal = form.statement_end_bal.data
+        new_reconciliation.prior_end_bal_str = form.prior_end_bal_str.data
+        new_reconciliation.statement_end_bal_str = form.statement_end_bal_str.data
         new_reconciliation.acct_id = acct_id
         new_reconciliation.is_first = False
     
@@ -608,8 +608,8 @@ def adjust_reconciliation(username, rec_id):
         reconciliation.start_date = form.start_date.data
         reconciliation.end_date = form.end_date.data
         reconciliation.user_id = user.id
-        reconciliation.prior_end_balance = form.prior_end_balance.data
-        reconciliation.statement_end_bal = form.statement_end_bal.data
+        reconciliation.prior_end_bal_str = form.prior_end_bal_str.data
+        reconciliation.statement_end_bal_str = form.statement_end_bal_str.data
         # reconciliation.acct_id = id
 
         db.session.commit()
@@ -636,7 +636,7 @@ def reconcile(username, acct_id):
 
     print(target_rec.prior_end_balance, startbal.startbal_str, prior_end_bal)
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_bal_str, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
@@ -652,7 +652,7 @@ def continue_reconcile(username, rec_id):
 
     username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance_str, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/_reconciled_button')
 @login_required

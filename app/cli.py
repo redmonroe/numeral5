@@ -1,9 +1,8 @@
 import os
 import click
-from app.models import Accounts
-from app import db
+from datetime import datetime as dt
 
-
+from config import Config
 
 def register(app):
     @app.cli.group()
@@ -19,11 +18,22 @@ def register(app):
     def duplicatecol():
         """duplicate a column"""
         """I don't know how to abstract this properly"""
-        for item in Accounts.query.all():
+        from app.models import Accounts, Reconciliation
+        from app import db
+        for item in Reconciliation.query.all():
             print(item)
-            item.startbal_str = str(item.startbal)
+            item.statement_end_bal_str = str(item.statement_end_bal)
             db.session.commit()
         db.session.close()
+
+    @db_utilities.command()
+    def dumpdb():
+        def pg_dump_one():
+            bu_time = dt.now()
+            print(bu_time)
+            os.system(f'pg_dump --dbname={Config.PG_DUMPS_URI} > "{Config.DB_BACKUPS}\lnew_loaderdump{bu_time.month}{bu_time.day}{bu_time.year}{bu_time.hour}.sql"')
+
+        pg_dump_one()
 
     @app.cli.group()
     def translate():

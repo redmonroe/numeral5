@@ -46,8 +46,8 @@ class EditTransactionForm(TransactionCreationForm):
 class ReconciliationForm(FlaskForm):
     start_date = DateField('statement start date', validators=[DataRequired()])
     end_date = DateField('statement end date', validators=[DataRequired()])
-    prior_end_balance = DecimalField('prior ending balance?', validators=[DataRequired()])
-    statement_end_bal = DecimalField('statement ending balance?', validators=[DataRequired()])
+    prior_end_bal_str = StringField('prior ending balance?', validators=[DataRequired()])
+    statement_end_bal_str = StringField('statement ending balance?', validators=[DataRequired()])
     submit = SubmitField('start reconciling')
 
 class EditReconciliationForm(ReconciliationForm):
