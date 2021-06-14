@@ -4,6 +4,20 @@ import click
 
 def register(app):
     @app.cli.group()
+    def db_utilities():
+        """just get a command without running a route"""
+        pass
+
+    @db_utilities.command()
+    def print_test():
+        print('hello world')
+
+    @db_utilities.command()
+    def duplicatecol():
+        """duplicate a columnt"""
+        print('hello world2')
+
+    @app.cli.group()
     def translate():
         """Translation and localization commands."""
         pass
@@ -33,9 +47,3 @@ def register(app):
         """Compile all languages."""
         if os.system('pybabel compile -d app/translations'):
             raise RuntimeError('compile command failed')
-
-
-    @app.cli.command()
-    def test():
-        for item in Transactions.query.all():
-            print(item)

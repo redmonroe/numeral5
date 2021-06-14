@@ -807,7 +807,6 @@ def createdb():
     db.create_all()
     return 'creating dbs from models'
 
-
 @bp.route('/dumpdb')
 def dumpdb():
     import os
