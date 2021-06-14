@@ -11,7 +11,7 @@ class EmptyForm(FlaskForm):
 
 class AccountCreationForm(FlaskForm):
     acct_name = StringField('account name', validators=[DataRequired()])
-    startbal = DecimalField('starting balance', validators=[InputRequired()])
+    startbal_str = StringField('starting balance', validators=[InputRequired()])
     type = StringField('asset or liability?', validators=[DataRequired()])
     status = StringField('open or closed?', validators=[DataRequired()])
     submit = SubmitField('create account')

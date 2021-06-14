@@ -1,5 +1,8 @@
 import os
 import click
+from app.models import Accounts
+from app import db
+
 
 
 def register(app):
@@ -14,8 +17,13 @@ def register(app):
 
     @db_utilities.command()
     def duplicatecol():
-        """duplicate a columnt"""
-        print('hello world2')
+        """duplicate a column"""
+        """I don't know how to abstract this properly"""
+        for item in Accounts.query.all():
+            print(item)
+            item.startbal_str = str(item.startbal)
+            db.session.commit()
+        db.session.close()
 
     @app.cli.group()
     def translate():

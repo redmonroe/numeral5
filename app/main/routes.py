@@ -53,7 +53,7 @@ def create_account(username):
     if form.validate_on_submit():
         new_account = Accounts()
         new_account.acct_name = form.acct_name.data
-        new_account.startbal = form.startbal.data
+        new_account.startbal_str = form.startbal_str.data
         new_account.type = form.type.data
         new_account.status = form.status.data
         new_account.user_id = user.id
@@ -72,7 +72,6 @@ def delete_account(username):
 
     r = Accounts.query.filter(Accounts.user_id == user.id).all()
 
-    # return redirect(url_for('delete_account', username=username)) #post/redirect/get pattern
     return render_template('main/delete_account.html', items=r)
 
 @bp.route('/deleted/<username>/<id>', methods=['GET', 'POST'])
@@ -87,7 +86,6 @@ def deleted(username, id):
     db.session.commit()
 
     flash('congratulations, you deleted an account')
-    # post/redirect/get pattern
     return redirect(url_for('main.accounts', username=username))
 
 @bp.route('/edit_account/<username>/<id>', methods=['GET', 'POST'])
@@ -103,7 +101,7 @@ def edit_account(username, id):
     form = EditAccountForm(obj=account)
     if form.validate_on_submit():
         account.acct_name = form.acct_name.data
-        account.startbal = form.startbal.data
+        account.startbal_str = form.startbal_str.data
         account.type = form.type.data
         account.status = form.status.data
         account.user_id = user.id

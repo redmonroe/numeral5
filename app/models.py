@@ -103,15 +103,13 @@ class Transactions(db.Model):
             results.append(item)
 
         bal_list = []
-        # gets starting balance from account id
         starting_balance = Accounts.query.filter(Accounts.id == id).first()
-        # print('ok', starting_balance.startbal)
+
 
         for item in results:
             if item.type == 'transfer' and item.acct_id2 == int(id):
                 bal_list.append(item.amount * -1)
             elif (item.type == 'transfer') and (item.acct_id == int(id)):
-                print('transfer amount:', item.amount)
                 bal_list.append(item.amount)
             elif item.type == 'transactions':
                 bal_list.append(item.amount)
@@ -119,10 +117,10 @@ class Transactions(db.Model):
 
         try:
             print('bal_list sum', sum(bal_list))
-            curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+            curbal = Decimal(starting_balance.startbal_str) + sum(bal_list)
             print('curbal', curbal)
         except TypeError as e: 
-            curbal = Decimal(starting_balance.startbal) + 0
+            curbal = Decimal(starting_balance.startbal_str) + 0
 
         return curbal, starting_balance
 
