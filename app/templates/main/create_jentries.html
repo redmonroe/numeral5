@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %} {% import 'bootstrap/wtf.html' as wtf %} {% block
+app_content %}
+<html>
+  <head> </head>
+  <body>
+    <h1>create journal entry</h1>
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      <p>
+        {{ form.effective_date.label }}<br />
+        {{ form.effective_date(size=32) }}<br />
+        {% for error in form.effective_date.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>
+        {{ form.note.label }}<br />
+        {{ form.note(size=32) }}<br />
+        {% for error in form.note.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>
+        {{ form.account1.label }}<br />
+        {{ form.account1(size=8) }}<br />
+        {% for error in form.account1.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>
+        {{ form.amount1.label }}<br />
+        {{ form.amount1(size=8) }}<br />
+        {% for error in form.amount1.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>
+        {{ form.account2.label }}<br />
+        {{ form.account2(size=8) }}<br />
+        {% for error in form.account2.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>
+        {{ form.amount2.label }}<br />
+        {{ form.amount2(size=8) }}<br />
+        {% for error in form.amount2.errors %}
+        <span style="color: red">[{{ error }}]</span>
+        {% endfor %}
+      </p>
+      <p>{{ form.submit() }}</p>
+    </form>
+    {% endblock %}
+  </body>
+</html>
