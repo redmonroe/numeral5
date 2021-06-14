@@ -42,7 +42,7 @@ def accounts(username):
     return render_template('main/view_account.html', items=account_list)
 
 @bp.route('/create_account/<username>/', methods=['GET', 'POST'])
-@login_required
+@login_required         
 def create_account(username):
 
     user = User.query.filter_by(username=username).first()
@@ -526,7 +526,6 @@ def delete_reconciliation(username, id, acct_id):
     #on delete, release all txn from Reconciled = True
     r = Reconciliation.query.get(id)
 
-
     ## should show warning if trying to delete finalized == True
     if r.finalized == True:
         reconciled_is_true_list = json.loads(r.txnjsn)
@@ -552,7 +551,10 @@ def start_reconciliation(username, acct_id):
     if result == None: #this branch is for first reconciliation in the account
         # if no previous reconciliation then use Account.startbal
         account = Accounts.query.get(acct_id)
-        form = ReconciliationForm(prior_ending_balance=account.startbal)
+        print('first reconciliation for this account', account.startbal_str)
+        form = ReconciliationForm(prior_end_balance=10)
+        # form = ReconciliationForm(prior_end_balance=account.startbal_str)
+        # print(form.prior_ending_ba)
     elif result.finalized == None: # this branch is for if continuing last reconciliation if 
         target_rec = Reconciliation.query.get(result.id)  # picks up with selected rec_id
 
@@ -632,7 +634,7 @@ def reconcile(username, acct_id):
     username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
         username=username, acct_id=acct_id, page=page)
 
-    print(target_rec.prior_end_balance, startbal.startbal, prior_end_bal)
+    print(target_rec.prior_end_balance, startbal.startbal_str, prior_end_bal)
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
 
