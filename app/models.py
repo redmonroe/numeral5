@@ -43,6 +43,7 @@ class Accounts(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     acct_name = db.Column(db.String)
     startbal = db.Column(db.Numeric)
+    startbal_str = db.Column(db.String)
     type = db.Column(db.String)
     status = db.Column(db.String) #either open or closed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
