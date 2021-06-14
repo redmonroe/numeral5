@@ -352,9 +352,6 @@ def deletedtxn(username, id, acct):
 @bp.route('/edit_transaction/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def edit_transaction(username, id):
-
-
-    print('ct:', lastpage)
     user = User.query.filter_by(username=username).first()
 
     r = Transactions.query.filter(Transactions.user_id == user.id).all()
@@ -371,10 +368,16 @@ def edit_transaction(username, id):
 
     cat_list = [(item.id, item.name) for item in category_choice]
 
+    # ''' code to create dynamic vendor list
+    vendor_choice = Vendors.query.filter(Vendors.user_id == user.id).all()
+
+    vendor_list = [(item.vendor_name) for item in vendor_choice]
+
     form = EditTransactionForm(obj=transaction)
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
+    form.payee_name.choices = vendor_list
 
     if form.validate_on_submit():
 
@@ -631,10 +634,10 @@ def reconcile(username, acct_id):
 
     rec = Reconciliation()
 
-    username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
+    username, results, startbal, curbal, prior_end_bal_str, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
         username=username, acct_id=acct_id, page=page)
 
-    print(target_rec.prior_end_balance, startbal.startbal_str, prior_end_bal)
+    print(target_rec.prior_end_balance, startbal.startbal_str, prior_end_bal_str)
 
     return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_bal_str, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
