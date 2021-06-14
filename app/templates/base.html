@@ -21,7 +21,8 @@
                 <a class="navbar-brand" href="{{ url_for('main.transactions', username=current_user.username) }}">transactions</a>
                 <a class="navbar-brand" href="{{ url_for('main.view_reconciliations_by_account', username=current_user.username) }}">reconciliations</a>
                 <a class="navbar-brand"
-                    href="{{ url_for('main.reports', username=current_user.username) }}">reports</a>
+                href="{{ url_for('main.reports', username=current_user.username) }}">reports</a>
+                <a class="navbar-brand" href="{{ url_for('main.create_jentries', username=current_user.username) }}">journal entry</a>
                 <a class="navbar-brand" href="{{ url_for('main.dumpdb') }}">backup db</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">

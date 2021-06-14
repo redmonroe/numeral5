@@ -8,9 +8,9 @@ from app.main.forms import (AccountCreationForm, CategoryCreationForm,
                             EditAccountForm, EditCategoryForm,
                             EditReconciliationForm, EditTransactionForm,
                             EmptyForm, ReconciliationForm, ReportSelectForm,
-                            TransactionCreationForm, VendorCreationForm, EditVendorForm)
+                            TransactionCreationForm, VendorCreationForm, EditVendorForm,  JentryCreationForm, EditJentryForm)
 from app.models import (Accounts, Categories, Reconciliation, Reports,
-                        Transactions, User, Vendors, route_utilities)
+                        Transactions, User, Vendors, Jentries, route_utilities)
 from flask import (current_app, flash, g, jsonify, redirect, render_template,
                    request, url_for)
 from flask_babel import _, get_locale
@@ -800,6 +800,52 @@ def edit_vendor(username, vendor_id):
         flash('congratulations, you created a new vendor')
         return redirect(url_for('main.vendors', username=username))
     return render_template('main/edit_vendor.html', form=form)
+
+'''Jentries'''
+"""put viewing journal entries as an option in reports and not a standalone button"""
+
+@bp.route('/create_jentries/<username>/', methods=['GET', 'POST'])
+@login_required
+def create_jentries(username):
+
+    user = User.query.filter_by(username=username).first()
+
+    # ''' code to create dynamic category list for form'''
+    category_choice = Categories.query.filter(
+        Categories.user_id == user.id).all()
+
+    cat_list = [(item.id, item.name) for item in category_choice]
+
+    form = JentryCreationForm()
+    form.account1.choices = cat_list
+    form.account2.choices = cat_list
+    if form.validate_on_submit():
+        new_jentries = Jentries()
+        new_jentries.effective_date = form.effective_date.data
+        new_jentries.note = form.note.data
+        new_jentries.amount1 = form.amount1.data
+        new_jentries.amount2 = form.amount2.data
+        new_jentries.account1 = form.account1.data
+        new_jentries.account2 = form.account2.data
+        new_jentries.user_id = user.id
+
+        balanced_check = Decimal(new_jentries.amount1) + Decimal(new_jentries.amount2)
+
+        if balanced_check == 0:
+            db.session.add(new_jentries)
+            db.session.commit()
+            flash('congratulations, you created a new journal')
+            return redirect(url_for('main.create_jentries', username=username))
+        else:
+            print(balanced_check)
+            flash('entry not in balance. Please adjust.')
+
+    return render_template('main/create_jentries.html', form=form)
+
+
+
+
+
 
 '''db management'''
 @bp.route('/createdb')

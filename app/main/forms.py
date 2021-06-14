@@ -77,3 +77,15 @@ class VendorCreationForm(FlaskForm):
 
 class EditVendorForm(VendorCreationForm):
     pass
+
+class JentryCreationForm(FlaskForm):
+    effective_date = DateField('statement start date', validators=[DataRequired()])
+    account1 = SelectField('account1', validators=[DataRequired()])
+    amount1 = StringField('amount1', validators=[DataRequired()])
+    account2 = SelectField('account2', validators=[DataRequired()])
+    amount2 = StringField('amount2', validators=[DataRequired()])
+    note = StringField('note')
+    submit = SubmitField('record entry')
+
+class EditJentryForm(JentryCreationForm):
+    pass

@@ -281,6 +281,16 @@ class Reports(object):
 
         return output_list_of_tuples
 
+class Jentries(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    effective_date = db.Column(db.Date)
+    note = db.Column(db.String)
+    account1 = db.Column(db.String)
+    amount1 =  db.Column(db.String)    
+    account2 = db.Column(db.String)
+    amount2 =  db.Column(db.String)    
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
 class route_utilities(object):
 
     @staticmethod
