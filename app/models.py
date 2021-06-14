@@ -128,10 +128,13 @@ class Reconciliation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
+
     prior_end_balance = db.Column(db.Numeric)
     prior_end_bal_str = db.Column(db.String)
+
     statement_end_bal = db.Column(db.Numeric)
     statement_end_bal_str = db.Column(db.String)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     finalized = db.Column(db.Boolean)
@@ -143,10 +146,13 @@ class Reconciliation(db.Model):
 
     def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None, style=None):
 
+        """this function is still scary to me: if I have the account id that should be all I need to pull the transactions relevant to the reconciliation"""
+
         if style == 'continue':
     
             acct_id = target_rec.acct_id
-            transactions_and_transfers_native = Transactions.acct_id == acct_id
+            transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
+                Transactions.acct_id == acct_id)
 
             transfers_foreign = and_(Transactions.type == 'transfer',
                                     Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
@@ -155,14 +161,13 @@ class Reconciliation(db.Model):
             reconciliation_dates = and_(
                 Transactions.date >= target_rec.start_date, Transactions.date <= target_rec.end_date)
 
+       
             filter_args = [transactions_and_transfers_native, transfers_foreign]
 
             or_filter = or_(*filter_args)
-
-            results = Transactions.query.filter(or_filter)
-
+            
             results = Transactions.query.filter(reconciliation_dates)
-
+            results = Transactions.query.filter(or_filter)
             results = results.order_by(Transactions.date.asc()).paginate(
                 page, current_app.config['ITEMS_PER_PAGE_REC'], False)
 
@@ -172,10 +177,12 @@ class Reconciliation(db.Model):
             rec_id = target_rec.id
 
         else:
-            user = User.query.filter_by(username=username).first()
+            print('style = not continue')
 
             # building the query
-            transactions_and_transfers_native = Transactions.acct_id == acct_id
+            transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
+                Transactions.acct_id == acct_id)
+
 
             transfers_foreign = and_(Transactions.type == 'transfer',
                                     Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
@@ -187,10 +194,13 @@ class Reconciliation(db.Model):
 
             or_filter = or_(*filter_args)
 
-            results = Transactions.query.filter(or_filter)
+            # iteratively applying queries  
             results = Transactions.query.filter(reconciliation_dates)
+            results = Transactions.query.filter(or_filter)     
             results = results.order_by(Transactions.date.asc()).paginate(
                 page, current_app.config['ITEMS_PER_PAGE_REC'], False)
+
+    
 
             # get starting and current balances
             curbal, startbal = Transactions.get_current_balance(acct_id)
