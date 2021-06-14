@@ -168,7 +168,7 @@ class Reconciliation(db.Model):
 
             curbal, startbal = Transactions.get_current_balance(acct_id)
 
-            prior_end_bal = target_rec.statement_end_bal
+            prior_end_bal = target_rec.statement_end_bal_str
             rec_id = target_rec.id
 
         else:
@@ -194,7 +194,7 @@ class Reconciliation(db.Model):
 
             # get starting and current balances
             curbal, startbal = Transactions.get_current_balance(acct_id)
-            prior_end_bal = target_rec.statement_end_bal
+            prior_end_bal = target_rec.statement_end_bal_str
             rec_id = target_rec.id
 
         
