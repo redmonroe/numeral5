@@ -20,11 +20,21 @@ def register(app):
         """I don't know how to abstract this properly"""
         from app.models import Accounts, Reconciliation
         from app import db
-        for item in Reconciliation.query.all():
-            print(item)
-            item.statement_end_bal_str = str(item.statement_end_bal)
+        for item in Accounts.query.all():
+            item.startbal_str = str(item.startbal)
+
+            print(item.startbal_str)
             db.session.commit()
+            
         db.session.close()
+
+
+
+        # for item in Reconciliation.query.all():
+        #     print(item)
+        #     item.statement_end_bal_str = str(item.statement_end_bal)
+        #     db.session.commit()
+        # db.session.close()
 
     @db_utilities.command()
     def dumpdb():
