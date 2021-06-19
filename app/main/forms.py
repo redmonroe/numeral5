@@ -11,7 +11,7 @@ class EmptyForm(FlaskForm):
 
 class AccountCreationForm(FlaskForm):
     acct_name = StringField('account name', validators=[DataRequired()])
-    startbal = DecimalField('starting balance', validators=[InputRequired()])
+    startbal_str = StringField('starting balance', validators=[InputRequired()])
     type = StringField('asset or liability?', validators=[DataRequired()])
     status = StringField('open or closed?', validators=[DataRequired()])
     submit = SubmitField('create account')
@@ -46,8 +46,8 @@ class EditTransactionForm(TransactionCreationForm):
 class ReconciliationForm(FlaskForm):
     start_date = DateField('statement start date', validators=[DataRequired()])
     end_date = DateField('statement end date', validators=[DataRequired()])
-    prior_end_balance = DecimalField('prior ending balance?', validators=[DataRequired()])
-    statement_end_bal = DecimalField('statement ending balance?', validators=[DataRequired()])
+    prior_end_bal_str = StringField('prior ending balance?', validators=[DataRequired()])
+    statement_end_bal_str = StringField('statement ending balance?', validators=[DataRequired()])
     submit = SubmitField('start reconciling')
 
 class EditReconciliationForm(ReconciliationForm):
@@ -62,14 +62,14 @@ class ReportSelectForm(FlaskForm):
     end_date = DateField('end')
     submit = SubmitField('generate report')
 
-class ReportSelectForm(FlaskForm):
-    report_period = SelectField('report period', choices=[('year', 'year'), ('month', 'month'), ('last month', 'last month'), ('custom', 'custom')])
-    report_template = SelectField('report template', choices=[('default', 'get all in period'), ('posted', 'posted only')])
-    total_by_cat = SelectField('total by category', choices=[(True, 'yes'), (False, 'no')])
-    # if report_period == 'custom':
-    start_date = DateField('start')
-    end_date = DateField('end')
-    submit = SubmitField('generate report')
+# class ReportSelectForm(FlaskForm):
+#     report_period = SelectField('report period', choices=[('year', 'year'), ('month', 'month'), ('last month', 'last month'), ('custom', 'custom')])
+#     report_template = SelectField('report template', choices=[('default', 'get all in period'), ('posted', 'posted only')])
+#     total_by_cat = SelectField('total by category', choices=[(True, 'yes'), (False, 'no')])
+#     # if report_period == 'custom':
+#     start_date = DateField('start')
+#     end_date = DateField('end')
+#     submit = SubmitField('generate report')
 
 class VendorCreationForm(FlaskForm):
     vendor_name = StringField('vendor name')

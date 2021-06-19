@@ -43,6 +43,7 @@ class Accounts(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     acct_name = db.Column(db.String)
     startbal = db.Column(db.Numeric)
+    startbal_str = db.Column(db.String)
     type = db.Column(db.String)
     status = db.Column(db.String) #either open or closed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -102,15 +103,13 @@ class Transactions(db.Model):
             results.append(item)
 
         bal_list = []
-        # gets starting balance from account id
         starting_balance = Accounts.query.filter(Accounts.id == id).first()
-        # print('ok', starting_balance.startbal)
+
 
         for item in results:
             if item.type == 'transfer' and item.acct_id2 == int(id):
                 bal_list.append(item.amount * -1)
             elif (item.type == 'transfer') and (item.acct_id == int(id)):
-                print('transfer amount:', item.amount)
                 bal_list.append(item.amount)
             elif item.type == 'transactions':
                 bal_list.append(item.amount)
@@ -118,10 +117,10 @@ class Transactions(db.Model):
 
         try:
             print('bal_list sum', sum(bal_list))
-            curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+            curbal = Decimal(starting_balance.startbal_str) + sum(bal_list)
             print('curbal', curbal)
         except TypeError as e: 
-            curbal = Decimal(starting_balance.startbal) + 0
+            curbal = Decimal(starting_balance.startbal_str) + 0
 
         return curbal, starting_balance
 
@@ -129,8 +128,13 @@ class Reconciliation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
+
     prior_end_balance = db.Column(db.Numeric)
+    prior_end_bal_str = db.Column(db.String)
+
     statement_end_bal = db.Column(db.Numeric)
+    statement_end_bal_str = db.Column(db.String)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     acct_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     finalized = db.Column(db.Boolean)
@@ -142,10 +146,13 @@ class Reconciliation(db.Model):
 
     def reconciliation_wrapper(self, username=None, acct_id=None, page=None, target_rec=None, style=None):
 
+        """this function is still scary to me: if I have the account id that should be all I need to pull the transactions relevant to the reconciliation"""
+
         if style == 'continue':
     
             acct_id = target_rec.acct_id
-            transactions_and_transfers_native = Transactions.acct_id == acct_id
+            transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
+                Transactions.acct_id == acct_id)
 
             transfers_foreign = and_(Transactions.type == 'transfer',
                                     Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
@@ -154,27 +161,28 @@ class Reconciliation(db.Model):
             reconciliation_dates = and_(
                 Transactions.date >= target_rec.start_date, Transactions.date <= target_rec.end_date)
 
+       
             filter_args = [transactions_and_transfers_native, transfers_foreign]
 
             or_filter = or_(*filter_args)
-
-            results = Transactions.query.filter(or_filter)
-
+            
             results = Transactions.query.filter(reconciliation_dates)
-
+            results = Transactions.query.filter(or_filter)
             results = results.order_by(Transactions.date.asc()).paginate(
                 page, current_app.config['ITEMS_PER_PAGE_REC'], False)
 
             curbal, startbal = Transactions.get_current_balance(acct_id)
 
-            prior_end_bal = target_rec.statement_end_bal
+            prior_end_bal = target_rec.statement_end_bal_str
             rec_id = target_rec.id
 
         else:
-            user = User.query.filter_by(username=username).first()
+            print('style = not continue')
 
             # building the query
-            transactions_and_transfers_native = Transactions.acct_id == acct_id
+            transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
+                Transactions.acct_id == acct_id)
+
 
             transfers_foreign = and_(Transactions.type == 'transfer',
                                     Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
@@ -186,14 +194,17 @@ class Reconciliation(db.Model):
 
             or_filter = or_(*filter_args)
 
-            results = Transactions.query.filter(or_filter)
+            # iteratively applying queries  
             results = Transactions.query.filter(reconciliation_dates)
+            results = Transactions.query.filter(or_filter)     
             results = results.order_by(Transactions.date.asc()).paginate(
                 page, current_app.config['ITEMS_PER_PAGE_REC'], False)
 
+    
+
             # get starting and current balances
             curbal, startbal = Transactions.get_current_balance(acct_id)
-            prior_end_bal = target_rec.statement_end_bal
+            prior_end_bal = target_rec.statement_end_bal_str
             rec_id = target_rec.id
 
         

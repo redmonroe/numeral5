@@ -42,7 +42,7 @@ def accounts(username):
     return render_template('main/view_account.html', items=account_list)
 
 @bp.route('/create_account/<username>/', methods=['GET', 'POST'])
-@login_required
+@login_required         
 def create_account(username):
 
     user = User.query.filter_by(username=username).first()
@@ -53,7 +53,7 @@ def create_account(username):
     if form.validate_on_submit():
         new_account = Accounts()
         new_account.acct_name = form.acct_name.data
-        new_account.startbal = form.startbal.data
+        new_account.startbal_str = form.startbal_str.data
         new_account.type = form.type.data
         new_account.status = form.status.data
         new_account.user_id = user.id
@@ -72,7 +72,6 @@ def delete_account(username):
 
     r = Accounts.query.filter(Accounts.user_id == user.id).all()
 
-    # return redirect(url_for('delete_account', username=username)) #post/redirect/get pattern
     return render_template('main/delete_account.html', items=r)
 
 @bp.route('/deleted/<username>/<id>', methods=['GET', 'POST'])
@@ -87,7 +86,6 @@ def deleted(username, id):
     db.session.commit()
 
     flash('congratulations, you deleted an account')
-    # post/redirect/get pattern
     return redirect(url_for('main.accounts', username=username))
 
 @bp.route('/edit_account/<username>/<id>', methods=['GET', 'POST'])
@@ -103,7 +101,7 @@ def edit_account(username, id):
     form = EditAccountForm(obj=account)
     if form.validate_on_submit():
         account.acct_name = form.acct_name.data
-        account.startbal = form.startbal.data
+        account.startbal_str = form.startbal_str.data
         account.type = form.type.data
         account.status = form.status.data
         account.user_id = user.id
@@ -354,9 +352,6 @@ def deletedtxn(username, id, acct):
 @bp.route('/edit_transaction/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def edit_transaction(username, id):
-
-
-    print('ct:', lastpage)
     user = User.query.filter_by(username=username).first()
 
     r = Transactions.query.filter(Transactions.user_id == user.id).all()
@@ -373,10 +368,16 @@ def edit_transaction(username, id):
 
     cat_list = [(item.id, item.name) for item in category_choice]
 
+    # ''' code to create dynamic vendor list
+    vendor_choice = Vendors.query.filter(Vendors.user_id == user.id).all()
+
+    vendor_list = [(item.vendor_name) for item in vendor_choice]
+
     form = EditTransactionForm(obj=transaction)
     form.acct_id.choices = account_list
     form.acct_id2.choices = account_list
     form.cat_id.choices = cat_list
+    form.payee_name.choices = vendor_list
 
     if form.validate_on_submit():
 
@@ -528,7 +529,6 @@ def delete_reconciliation(username, id, acct_id):
     #on delete, release all txn from Reconciled = True
     r = Reconciliation.query.get(id)
 
-
     ## should show warning if trying to delete finalized == True
     if r.finalized == True:
         reconciled_is_true_list = json.loads(r.txnjsn)
@@ -554,8 +554,11 @@ def start_reconciliation(username, acct_id):
     if result == None: #this branch is for first reconciliation in the account
         # if no previous reconciliation then use Account.startbal
         account = Accounts.query.get(acct_id)
-        form = ReconciliationForm(prior_ending_balance=account.startbal)
-    elif result.finalized == None: # this branch is for if continuing last reconciliation if 
+        print('first reconciliation for this account', account.startbal_str)
+        # form = ReconciliationForm(prior_end_balance=10)
+        form = ReconciliationForm(prior_end_bal_str=account.startbal_str)
+        # print(form.prior_ending_ba)
+    elif result.finalized == None: # this branch is for if continuing last reconciliation, that is, if reconciliation is started but finalized=FALSE
         target_rec = Reconciliation.query.get(result.id)  # picks up with selected rec_id
 
         user = User.query.filter_by(username=username).first()
@@ -567,14 +570,14 @@ def start_reconciliation(username, acct_id):
         username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(
             target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
-        return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+        return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
     else:
         # this branch is for starting a new reconciliation & pre-filling the columns
         #add one day to last end date
         legacy_end_date = result.end_date
         adjusted_start_date = legacy_end_date + timedelta(1)
-        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_balance=result.statement_end_bal)
+        form = ReconciliationForm(start_date=adjusted_start_date, prior_end_bal_str=result.statement_end_bal_str)
 
 
     if form.validate_on_submit():
@@ -583,8 +586,8 @@ def start_reconciliation(username, acct_id):
         new_reconciliation.user_id = user.id
         new_reconciliation.start_date = form.start_date.data
         new_reconciliation.end_date = form.end_date.data
-        new_reconciliation.prior_end_balance = form.prior_end_balance.data
-        new_reconciliation.statement_end_bal = form.statement_end_bal.data
+        new_reconciliation.prior_end_bal_str = form.prior_end_bal_str.data
+        new_reconciliation.statement_end_bal_str = form.statement_end_bal_str.data
         new_reconciliation.acct_id = acct_id
         new_reconciliation.is_first = False
     
@@ -608,8 +611,8 @@ def adjust_reconciliation(username, rec_id):
         reconciliation.start_date = form.start_date.data
         reconciliation.end_date = form.end_date.data
         reconciliation.user_id = user.id
-        reconciliation.prior_end_balance = form.prior_end_balance.data
-        reconciliation.statement_end_bal = form.statement_end_bal.data
+        reconciliation.prior_end_bal_str = form.prior_end_bal_str.data
+        reconciliation.statement_end_bal_str = form.statement_end_bal_str.data
         # reconciliation.acct_id = id
 
         db.session.commit()
@@ -631,12 +634,13 @@ def reconcile(username, acct_id):
 
     rec = Reconciliation()
 
-    username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
+    username, results, startbal, curbal, prior_end_bal_str, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,
         username=username, acct_id=acct_id, page=page)
 
-    print(target_rec.prior_end_balance, startbal.startbal, prior_end_bal)
+    # print(target_rec.prior_end_balance, startbal.startbal_str, prior_end_bal_str)
+    print(results.items)
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_bal_str, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/continue_reconcile/<username>/<rec_id>', methods=['GET', 'POST'])
 @login_required
@@ -650,9 +654,9 @@ def continue_reconcile(username, rec_id):
 
     rec = Reconciliation()
 
-    username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
+    username, results, startbal, curbal, prior_end_bal_str, rec_id, acct_id = rec.reconciliation_wrapper(target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
-    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_balance, curbal=curbal,  prior_end_bal=prior_end_bal, acct_id=acct_id, rec_id=rec_id)
+    return render_template('main/reconcile.html', username=username, items=results.items, startbal=target_rec.prior_end_bal_str, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)
 
 @bp.route('/_reconciled_button')
 @login_required
@@ -852,7 +856,6 @@ def create_jentries(username):
 def createdb():
     db.create_all()
     return 'creating dbs from models'
-
 
 @bp.route('/dumpdb')
 def dumpdb():

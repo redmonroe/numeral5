@@ -22,16 +22,16 @@
             {% endfor %}
         </p>
         <p>
-            {{ form. prior_end_balance.label }}<br>
-            {{ form. prior_end_balance(size=64) }}<br>
-            {% for error in form. prior_end_balance.errors %}
+            {{ form. prior_end_bal_str.label }}<br>
+            {{ form. prior_end_bal_str(size=64) }}<br>
+            {% for error in form. prior_end_bal_str.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>
-            {{ form.statement_end_bal.label }}<br>
-            {{ form.statement_end_bal(size=32) }}<br>
-            {% for error in form.statement_end_bal.errors %}
+            {{ form.statement_end_bal_str.label }}<br>
+            {{ form.statement_end_bal_str(size=32) }}<br>
+            {% for error in form.statement_end_bal_str.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

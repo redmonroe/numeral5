@@ -27,9 +27,9 @@ app_content %}
       {% endfor %}
     </p>
     <p>
-      {{ form.startbal.label }}<br />
-      {{ form.startbal(size=64) }}<br />
-      {% for error in form.startbal.errors %}
+      {{ form.startbal_str.label }}<br />
+      {{ form.startbal_str(size=64) }}<br />
+      {% for error in form.startbal_str.errors %}
       <span style="color: red">[{{ error }}]</span>
       {% endfor %}
     </p>
