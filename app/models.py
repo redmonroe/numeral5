@@ -152,7 +152,7 @@ class Reconciliation(db.Model):
     
             acct_id = target_rec.acct_id
             transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
-                Transactions.acct_id == acct_id)
+                Transactions.acct_id == acct_id, Transactions.reconciled == False)
 
             transfers_foreign = and_(Transactions.type == 'transfer',
                                     Transactions.acct_id2 == acct_id, Transactions.reconciled == False)
@@ -181,7 +181,7 @@ class Reconciliation(db.Model):
 
             # building the query
             transactions_and_transfers_native = and_(Transactions.type == 'transactions', 
-                Transactions.acct_id == acct_id)
+                Transactions.acct_id == acct_id, Transactions.reconciled == False)
 
 
             transfers_foreign = and_(Transactions.type == 'transfer',
@@ -199,8 +199,6 @@ class Reconciliation(db.Model):
             results = Transactions.query.filter(or_filter)     
             results = results.order_by(Transactions.date.asc()).paginate(
                 page, current_app.config['ITEMS_PER_PAGE_REC'], False)
-
-    
 
             # get starting and current balances
             curbal, startbal = Transactions.get_current_balance(acct_id)

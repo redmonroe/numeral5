@@ -567,7 +567,7 @@ def start_reconciliation(username, acct_id):
 
         rec = Reconciliation()
 
-        username, results, startbal, curbal, prior_end_bal, rec_id, acct_id = rec.reconciliation_wrapper(
+        username, results, startbal, curbal, prior_end_bal_str, rec_id, acct_id = rec.reconciliation_wrapper(
             target_rec=target_rec,                                                            username=username, acct_id=None, page=page, style='continue')
 
         return render_template('main/reconcile.html', username=username, items=results.items, startbal=startbal, curbal=curbal,  prior_end_bal=prior_end_bal_str, acct_id=acct_id, rec_id=rec_id)

@@ -30,11 +30,12 @@ def register(app):
 
 
 
-        # for item in Reconciliation.query.all():
-        #     print(item)
-        #     item.statement_end_bal_str = str(item.statement_end_bal)
-        #     db.session.commit()
-        # db.session.close()
+        for item in Reconciliation.query.all():
+            print(item)
+            item.statement_end_bal_str = str(item.statement_end_bal)
+            item.prior_end_bal_str = str(item.prior_end_balance)
+            db.session.commit()
+        db.session.close()
 
     @db_utilities.command()
     def dumpdb():
